@@ -1,5 +1,6 @@
 # ionicNetprof
 Ionic version of Netprof
+
 How to install netprof-lite ionic app
 
 If you don’t have these installed yet
@@ -31,21 +32,21 @@ Go to the net prof-lite Directory.
 
 The first time will take several minutes to install all the plugins and dependencies
 
-npm install
+  npm install
 
-ionic cordova build android
+  ionic cordova build android
 
-ionic cordova build ios 
+  ionic cordova build ios 
 
 If you get an error run this again.
 
-ionic cordova plugin add cordova-plugin-file-transfer@1.6.3
+  ionic cordova plugin add cordova-plugin-file-transfer@1.6.3
 
-ionic cordova build android
+  ionic cordova build android
 
 We need this for the recording to be posted properly to the server.
 
-cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.
+  cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.
 
 If you want to check the codes, you can open the downloaded code from your editor.
 
