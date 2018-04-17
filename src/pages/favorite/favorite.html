@@ -1,0 +1,73 @@
+<ion-header no-padding *ngIf="!auth.authenticated()">
+
+  <ion-navbar color="primary">
+   
+    <ion-buttons end>
+        <button ion-button clear item-right (click)="playList()">
+           Play
+          </button>
+      <button ion-button clear item-right (click)="clearPlayList()">
+        Remove
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+<ion-content>
+
+  <ion-list [virtualScroll]="items" approxItemHeight="40px">
+    <ion-item *virtualItem="let item ;let idx=index" no-lines>
+      <ion-card>
+        <h3>&nbsp;{{ item.lesson }} {{item.lessonId }} &nbsp;{{ item.sublesson }} {{item.sublessonId }}&nbsp; ID:{{item.id }}
+        </h3>
+        <h2 style="font-family:arial;" padding>
+           <span tappable (click)="man(item,idx,$event)">
+            <font color="green">{{ item.fl}}</font>
+          </span>
+          &nbsp;&nbsp;
+          <span tappable (click)="playEnglish(item)"> {{'(' + item.en +')'}} </span>
+        </h2>
+
+        <p id={{item.id}} tappable wrap (click)="context(item,idx,$event)" style="color:blue;">&nbsp;&nbsp;{{item.ct }} </p>
+        <ion-row>
+          <ion-col width-20>
+            <button ion-button block color="primary" (click)="changeSpeed(item)" *ngIf="!item.selectedSlow">
+              <ion-icon name="turtle-press"></ion-icon>
+            </button>
+            <button ion-button block color="light" (click)="changeSpeed(item)" *ngIf="item.selectedSlow">
+              <ion-icon name="turtle"></ion-icon>
+              <!-- for outline customizable
+                <ion-icon  name="turtle-press" ></ion-icon>-->
+            </button>
+          </ion-col>
+          <ion-col width-20>
+            <button ion-button block color="primary" (click)="contextItem(item)" *ngIf="!item.selectedCtr">
+              <ion-icon name="text"></ion-icon>
+            </button>
+            <button ion-button block color="light" (click)="contextItem(item)" *ngIf="item.selectedCtr">
+              <ion-icon name="text"></ion-icon>
+            </button>
+          </ion-col>
+          <ion-col width-20>
+            <button ion-button block (click)="man(item,idx,$event)">
+              <!--   <audio [src]="" (ended)="playerEnded(player)" (timeupdate)="setProgress()" #player></audio>  -->
+              <ion-icon name="man"></ion-icon>
+            </button>
+          </ion-col>
+          <ion-col width-20>
+            <button ion-button block color="secondary" (click)="woman(item,idx,$event)">
+              <!--    <audio [src]="" (ended)="playerEnded(player)" (timeupdate)="setProgress()" #player></audio>  -->
+              <ion-icon name="woman"></ion-icon>
+            </button>
+          </ion-col>
+          <ion-col width-20>
+            <button ion-button block color="danger" (click)="presentRecord(item,idx,$event )">
+              <ion-icon name="mic"></ion-icon>
+            </button>
+
+          </ion-col>
+        </ion-row>
+      </ion-card>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

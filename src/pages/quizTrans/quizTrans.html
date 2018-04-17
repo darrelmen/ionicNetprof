@@ -1,0 +1,85 @@
+<ion-slides #slides (ionSlideDidChange)="loadWaveform()">
+
+	<ion-slide class="start-slide">
+
+		<ion-card>
+			<h2 style="color:rgb(156, 24, 46);padding: 50px 10px 50px 10px; text-align:center; text-align:center;">
+				<font color="blue">NOTE:</font> Simple transcript and translator exercise. </h2>
+
+			<ion-list padding-top>
+				<ion-list-header>
+					Total of Test Items
+					<ion-badge item-end color="secondary">{{testItems}}</ion-badge>
+				</ion-list-header>
+				<ion-item no-padding>
+					<ion-range min="10" max={{testMax}} pin="true" [(ngModel)]="testItems" color="secondary">
+						<ion-label range-left>10</ion-label>
+						<ion-label range-right>{{testMax}}</ion-label>
+					</ion-range>
+				</ion-item>
+				<ion-item>
+					<ion-label>
+						<ion-icon name="options" padding-right></ion-icon>
+					</ion-label>
+
+					<ion-select [(ngModel)]="transOpt">
+						<ion-option selected value="scribeVocab">Transcribe Vocabulary</ion-option>
+						<ion-option value="scribeContext">Transcribe Context Sentences</ion-option>
+						<ion-option value="translaVocab">Translate Vocabulary</ion-option>
+						<ion-option value="translaContext">Translate Context Sentences</ion-option>
+					</ion-select>
+				</ion-item>
+			</ion-list>
+			<button ion-button color="primary" (click)="startSlide()">Start!</button>
+		</ion-card>
+	</ion-slide>
+
+	<ion-slide *ngFor="let item of questions; let i = index;">
+		<div id=flashMsg{{i}} style="color:rgb(156, 24, 46);padding: 50px 10px 50px 10px; text-align:center; text-align:center;"></div>
+
+		<h3> Question {{i+1}} of {{testItems}} </h3>
+		<!-- this is the where we put the answer-->
+		<div padding-left id={{i}} text-wrap></div>
+		<ion-card>
+
+			<!--Translate buttons-->
+			<h1 *ngIf="transOpt=='translaVocab'">
+				<font color="green"> {{item.fl}}</font>
+			</h1>
+			<h1 *ngIf="transOpt=='translaContext'">
+				<font color="green"> {{item.ct}}</font>
+			</h1>
+			<ion-textarea [(ngModel)]="inputValue" placeholder="Type here"></ion-textarea>
+		</ion-card>
+		<div id=waveform{{i}} *ngIf="transOpt=='scribeContext'"></div>
+
+		<button ion-button color="secondary" (click)="playWave()" *ngIf="transOpt=='scribeContext' && isNotPlay">
+			<ion-icon name="play"></ion-icon>Listen
+		</button>
+		<button ion-button color="dark" (click)="pauseWave()" *ngIf="transOpt=='scribeContext' && !isNotPlay">
+			<ion-icon name="pause"></ion-icon>Pause
+		</button>
+
+		<div id=waveform{{i}} *ngIf="transOpt=='scribeVocab'"></div>
+		<button ion-button color="secondary" (click)="playWave()" *ngIf="transOpt=='scribeVocab' && isNotPlay">
+			<ion-icon name="play">Listen</ion-icon>
+		</button>
+		<button ion-button color="secondary" (click)="pauseWave()" *ngIf="transOpt=='scribeVocab' && !isNotPlay">
+				<ion-icon name="pause"></ion-icon>
+			</button>
+		<button ion-button (click)="checkFlashCard(inputValue,item.ct,i)" *ngIf="transOpt=='scribeContext'">Check</button>
+		<button ion-button (click)="checkFlashCard(inputValue,item.fl,i)" *ngIf="transOpt=='scribeVocab'">Check</button>
+		<button ion-button (click)="checkFlashCard(inputValue,item.ctr,i)" *ngIf="transOpt=='translaContext'">Check</button>
+		<button ion-button (click)="checkFlashCard(inputValue,item.en,i)" *ngIf="transOpt=='translaVocab'">Check</button>
+		<button ion-button (click)="nextSlide(inputValue,item.en,i)">Next</button>
+		<button ion-button (click)="showAnswer(item)">Hint</button>
+	</ion-slide>
+	<ion-slide>
+		<h2>Final Score: {{score}}</h2>
+
+		<button (click)="restartQuiz()" ion-button full color="primary">Start Again</button>
+
+	</ion-slide>
+
+</ion-slides>
+<ion-footer></ion-footer>

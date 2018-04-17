@@ -1,0 +1,42 @@
+<ion-split-pane>
+  <ion-menu [content]="mycontent">
+    <ion-header padding style="background-color:#488aff;">
+      <ion-row>
+        <ion-title text-center color="light" tappable (click)="getSearchItems()">
+          <strong>{{siteName}}</strong>
+        </ion-title>
+      </ion-row>
+      <ion-row>
+        <ion-title text-center color="danger" tappable (tap)="getSearchItems()">
+          <strong>{{title}}</strong>
+        </ion-title>
+      </ion-row>
+    </ion-header>
+
+    <ion-content>
+        <ion-label text-center>
+            <strong>
+              <font color="blue">{{title}}</font>
+            </strong>
+          </ion-label>
+
+      <ion-list *ngIf="sublessons.length!=0" style="background-color: gray">
+        <button menuClose ion-item *ngFor="let item of lessons" (click)="getSearchItems(item)">
+          {{item.lesson.name}} - {{item.name}}
+          <font color="green">({{item.count}} items)</font>
+        </button>
+      </ion-list>
+      <ion-list *ngIf="sublessons.length==0">
+        <button menuClose ion-item *ngFor="let item of lessons" (click)="getSearchItems(item)">
+          {{item.type}} - {{item.name}}
+          <font color="green">({{item.count}} items)</font>
+        </button>
+      </ion-list>
+
+    </ion-content>
+
+
+  </ion-menu>
+
+  <ion-nav [root]="menuRoot" main #mycontent></ion-nav>
+</ion-split-pane>

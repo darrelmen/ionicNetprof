@@ -1,0 +1,30 @@
+<ion-header padding  *ngIf="!auth.authenticated()" class="headerLogo">
+  <ion-row style="background-color:#001a33;">
+    <ion-col width-10>
+      <ion-avatar item-left>
+        <img src="assets/img/Icon-40.png">
+      </ion-avatar>
+    </ion-col>
+    <ion-col width-80>
+      <ion-label text-center color="light">Simplified Pronunciation Feedback</ion-label>
+      <ion-title text-center color="danger" >{{auth.SITE_NAME}}</ion-title>
+    </ion-col>
+    <ion-col width-10>
+      <ion-avatar item-right>
+        <img src="assets/img/dliIcon.png">
+      </ion-avatar>
+    </ion-col>
+  </ion-row>
+  <ion-navbar white>
+    
+</ion-navbar>
+</ion-header>
+<ion-content  *ngIf="!auth.authenticated()" padding class="tools">
+  <div >
+    <div padding>
+      <h1 text-center>Thanks for visiting NetProF-lite, {{ auth.user }}! </h1>
+      <button ion-button block (click)="logout()">Logout</button>
+    </div>  
+  </div>
+</ion-content>
+

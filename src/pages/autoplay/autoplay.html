@@ -1,0 +1,54 @@
+<ion-content justify-content-center>
+<ion-card justify-content-center color="light">
+  <ion-slides no-margin #mySlider (ionSlideDidChange)="playSlide()" (ionSlideReachEnd)="getNextItem()">
+    <ion-slide *ngFor="let item of items ;  let id=index">
+
+      <ion-card-header>
+        <h3>&nbsp;{{ item.lesson }} {{item.lessonId }} &nbsp;{{ item.sublesson }} {{item.sublessonId }}&nbsp; ID:{{item.id }}</h3>
+      </ion-card-header>
+      <ion-card-content>
+
+        <h2 style="font-family:arial;" padding>
+          <span>
+            <font color="primary" size=20px;>{{ item.fl}}</font>
+          </span>  
+        </h2>
+        <span> {{'(' + item.en +')'}} </span>
+      </ion-card-content>
+    </ion-slide>
+  </ion-slides>
+</ion-card>
+      <ion-grid>
+
+          <ion-row>
+  
+              <ion-col width="25">
+                  <button ion-button icon-only clear (click)="slidePrevious()" color="dark"  >
+                      <ion-icon name="skip-backward"></ion-icon>
+                  </button>
+              </ion-col>
+  
+              <ion-col width="25">
+                  <button ion-button icon-only color="dark" clear *ngIf="!isAutoPlay" (click)="startAutoPlay()"  >
+                      <ion-icon name="play"></ion-icon>
+                  </button>
+                  <button ion-button icon-only color="dark" clear *ngIf="isAutoPlay" (click)="stopAutoPlay()"  >
+                      <ion-icon name="pause"></ion-icon>
+                  </button>
+              </ion-col>
+  
+              <ion-col width="25">
+                  <button ion-button icon-only color="dark" clear (click)="slideNext()" >
+                      <ion-icon name="skip-forward"></ion-icon>
+                  </button>
+              </ion-col>
+              <ion-col width="25">
+                  <button ion-button icon-only color="danger" clear (click)="dismiss()" >
+                      <ion-icon name="close-circle"></ion-icon>
+                  </button>
+              </ion-col>
+          </ion-row>
+  
+      </ion-grid>
+
+</ion-content>

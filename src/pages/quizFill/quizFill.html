@@ -1,0 +1,59 @@
+<ion-slides #slides>
+
+	<ion-slide class="start-slide">
+
+		<ion-card>
+			<h2 style="color:rgb(156, 24, 46);padding: 50px 10px 50px 10px; text-align:center; text-align:center;"><font color="blue">NOTE:</font> Fill in the missing word from the selections below. </h2>
+			<ion-list padding-top>
+					<ion-list-header>
+						Total of Test Items
+						<ion-badge item-end color="secondary">{{testItems}}</ion-badge>
+					</ion-list-header>
+					<ion-item style="background-color: white;" no-padding>
+						<ion-range min="10" max={{testMax}} pin="true" [(ngModel)]="testItems" color="secondary">
+							<ion-label range-left>10</ion-label>
+							<ion-label range-right>{{testMax}}</ion-label>
+						</ion-range>
+					</ion-item>
+				</ion-list>
+			<button ion-button color="primary" (click)="startSlide()">Start!</button>
+		</ion-card>
+	</ion-slide>
+
+	<ion-slide *ngFor="let question of questions; let i = index;">
+
+		<h3>Question {{i+1}} of {{questions.length}}</h3>
+
+		<flash-card [isFlipped]="question.flashCardFlipped">
+			<div class="flash-card-front" [innerHTML]="question.flashCardFront"></div>
+			<div class="flash-card-back" [innerHTML]=" question.flashCardBack.fontcolor('green') + '  (' + question.flashCardBackEng + ')'"></div>
+		</flash-card>
+		<ion-row no-padding>
+			<ion-col no-padding col-9>
+				<h3 style="padding:0px;">{{question.questionText}}</h3>
+			</ion-col>
+			<ion-col padding-right col-3>
+				<button ion-button small outline color="secondary" (click)="selectEnglish()">{{btnName}}</button>
+			</ion-col>
+		</ion-row>
+		<ion-list no-lines radio-group>
+
+			<ion-item *ngFor="let answer of question.answers; let i = index;">
+
+				<ion-label>{{i+1}}. {{btnName=="English" ? answer.answer : answer.answerEn}}</ion-label>
+				<ion-radio (click)="selectAnswer(answer, question)" [checked]="answer.selected" [disabled]="hasAnswered"></ion-radio>
+
+			</ion-item>
+
+		</ion-list>
+
+	</ion-slide>
+
+	<ion-slide>
+		<h2>Final Score: {{score}}</h2>
+
+		<button (click)="restartQuiz()" ion-button full color="primary">Start Again</button>
+
+	</ion-slide>
+
+</ion-slides>

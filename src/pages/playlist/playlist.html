@@ -1,0 +1,108 @@
+<ion-header>
+    <ion-navbar color="primary">
+        <button ion-button menuToggle>
+            <ion-icon name="menu"></ion-icon>
+        </button>
+        <ion-buttons end>
+            <button ion-button clear item-right (click)="playList()">
+                Play
+            </button>
+            <button ion-button clear item-right (click)="clearPlayList()">
+                Remove
+            </button>
+        </ion-buttons>
+    </ion-navbar>
+</ion-header>
+
+<ion-content fullscreen>
+    <ion-list [virtualScroll]="tracks" approxItemHeight="40px">
+        <ion-item *virtualItem="let track ;let idx=index" no-lines>
+            <ion-card (click)="track.playing ? pauseTrack(track) : playTrack(track)" [ngClass]="{ 'alternate': idx % 2, 'playing': track.playing }">
+                <h3>&nbsp;{{ track.lesson }} {{track.lessonId }} &nbsp;{{ track.sublesson }} {{track.sublessonId }}&nbsp; ID:{{track.id
+                    }}
+                </h3>
+                <h2 style="font-family:arial;" padding>
+                    <span tappable (click)="man(track,idx,$event)">
+                        <font color="green">{{ track.fl}}</font>
+                    </span>
+                    &nbsp;&nbsp;
+                    <span tappable (click)="playEnglish(track)"> {{'(' + track.en +')'}} </span>
+                </h2>
+
+                <p id={{track.id}} tappable wrap (click)="context(track,idx,$event)" style="color:blue;">&nbsp;&nbsp;{{track.ct }} </p>
+                <ion-row>
+                    <ion-col width-20>
+                        <button ion-button block color="primary" (click)="changeSpeed(track)" *ngIf="!track.selectedSlow">
+                            <ion-icon name="turtle-press"></ion-icon>
+                        </button>
+                        <button ion-button block color="light" (click)="changeSpeed(track)" *ngIf="track.selectedSlow">
+                            <ion-icon name="turtle"></ion-icon>
+                            <!-- for outline customizable
+                        <ion-icon  name="turtle-press" ></ion-icon>-->
+                        </button>
+                    </ion-col>
+                    <ion-col width-20>
+                        <button ion-button block color="primary" (click)="contextItem(track)" *ngIf="!track.selectedCtr">
+                            <ion-icon name="text"></ion-icon>
+                        </button>
+                        <button ion-button block color="light" (click)="contextItem(track)" *ngIf="track.selectedCtr">
+                            <ion-icon name="text"></ion-icon>
+                        </button>
+                    </ion-col>
+                    <ion-col width-20>
+                        <button ion-button block (click)="man(track,idx,$event)">
+                            <!--   <audio [src]="" (ended)="playerEnded(player)" (timeupdate)="setProgress()" #player></audio>  -->
+                            <ion-icon name="man"></ion-icon>
+                        </button>
+                    </ion-col>
+                    <ion-col width-20>
+                        <button ion-button block color="secondary" (click)="woman(track,idx,$event)">
+                            <!--    <audio [src]="" (ended)="playerEnded(player)" (timeupdate)="setProgress()" #player></audio>  -->
+                            <ion-icon name="woman"></ion-icon>
+                        </button>
+                    </ion-col>
+                    <ion-col width-20>
+                        <button ion-button block color="danger" (click)="presentRecord(track,idx,$event )">
+                            <ion-icon name="mic"></ion-icon>
+                        </button>
+
+                    </ion-col>
+                </ion-row>
+            </ion-card>
+        </ion-item>
+    </ion-list>
+
+
+</ion-content>
+<ion-footer>
+
+    <ion-grid>
+
+        <ion-row>
+
+            <ion-col width="33">
+                <button ion-button icon-only clear (click)="prevTrack()" color="dark"  >
+                    <ion-icon name="skip-backward"></ion-icon>
+                </button>
+            </ion-col>
+
+            <ion-col width="33">
+                <button ion-button icon-only color="dark" clear *ngIf="!currentTrack.playing" (click)="playTrack(currentTrack)"  >
+                    <ion-icon name="play"></ion-icon>
+                </button>
+                <button ion-button icon-only color="dark" clear *ngIf="currentTrack.playing" (click)="pauseTrack(currentTrack)"  >
+                    <ion-icon name="pause"></ion-icon>
+                </button>
+            </ion-col>
+
+            <ion-col width="33">
+                <button ion-button icon-only color="dark" clear (click)="nextTrack()" >
+                    <ion-icon name="skip-forward"></ion-icon>
+                </button>
+            </ion-col>
+
+        </ion-row>
+
+    </ion-grid>
+
+</ion-footer>

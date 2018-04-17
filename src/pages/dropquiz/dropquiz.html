@@ -1,0 +1,44 @@
+<ion-header>
+    <ion-navbar hideBackButton color="primary">
+        <ion-buttons left>
+            <button ion-button (click)="restartQuiz()">
+                <ion-icon name="arrow-back">&nbsp;</ion-icon>
+            </button>
+        </ion-buttons>
+        <ion-title text-center>{{siteName}} - Syntax Checker</ion-title>
+        <!--  <button ion-button round (click)="close()">Close</button> -->
+    </ion-navbar>
+
+</ion-header>
+<ion-content>
+    <div *ngIf="testCount < testItems">
+        <h3 padding text-center>{{testCount+1}} of {{questions.length}}
+            <font color='green'> ({{testLevel=='1' ? 'Easy' : testLevel=='2' ? 'Medium' :'Hardest'}}) </font>
+        </h3>
+        <ion-card padding>
+            <ion-col id="columns" col-auto no-padding *ngFor="let item of question.answers let i = index;" draggable="true">
+                <button class="column" color={{item.color}} ion-button large outline draggable="true">
+                    {{item.answer}}
+                </button>
+            </ion-col>
+        </ion-card>
+
+    </div>
+    <ion-card *ngIf="testCount == testItems">
+        <h2 padding text-center>Final Score: {{score}}/{{testItems}}</h2>
+        <button padding (click)="restartQuiz()" ion-button full color="primary">Start Again</button>
+    </ion-card>
+</ion-content>
+<ion-footer *ngIf="testCount < testItems">
+    <ion-row>
+        <ion-col width="33">
+            <button block ion-button (click)="checkAnswer(question.answers,question.wordsRightOrder)">Check</button>
+        </ion-col>
+        <ion-col width="33">
+            <button block ion-button (click)="nextQuestion(question.answers,question.wordsRightOrder)">Next</button>
+        </ion-col>
+        <ion-col width="33">
+            <button block ion-button color="secondary" (click)="showAnswer(question.wordsRightOrder)">Hint</button>
+        </ion-col>
+    </ion-row>
+</ion-footer>
