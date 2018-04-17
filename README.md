@@ -3,10 +3,11 @@ Ionic version of Netprof
 
 How to install netprof-lite ionic app
 
-If you don’t have these installed yet
-Download and install the latest Android Studio
-Download and install the java sdk
-Download and install the latest Xcode
+If you don’t have these installed yet. 
+
+Download and install the latest Android Studio. 
+Download and install the java sdk. 
+Download and install the latest Xcode. 
 
 Any editor will work but I prefer to use 
 Visual Studio Code-it has and integrated debugging tools
@@ -24,13 +25,13 @@ Check Ionic Docs https://ionicframework.com/docs/
 
 Create your working directory
 
-Download or checkout netprof-lite /ionic apps
+Download or checkout ionicNetprof
 
-Git checkout net prof-lite
+git checkout https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
 
-Go to the net prof-lite Directory.
+Go to the ionicNetprof Directory
 
-The first time will take several minutes to install all the plugins and dependencies
+-- The first time will take several minutes to install all the plugins and dependencies
 
   npm install
 
