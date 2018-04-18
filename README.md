@@ -22,13 +22,13 @@ Then, install the CLI globally (you may need sudo):
 
 #### Check Ionic Docs.  https://ionicframework.com/docs/
 
-Create your working directory
+- Create your working directory
 
-Download or checkout ionicNetprof
+- Download or checkout ionicNetprof
 
 - git checkout https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
 
-Go to the ionicNetprof Directory
+- Go to the ionicNetprof Directory
 
 The first time will take several minutes to install all the plugins and dependencies
 
@@ -72,5 +72,5 @@ We need to run this for the recording to be posted properly to the server.
 ##### Note : In order to run on browser we need to do minor changes to following files. These changes are needed because the Native-advance-http does not run on a browser and we need it to bypass CORs for iOS - we can fix this later when we have the correct certs and not use the native but the angular http.
 
 - Auth-service.js
-- Login.ts ,Chapterover.ts,
-- Menu items.ts Record.ts
+- Login.ts, Chapterover.ts,
+- Menuitems.ts,  Record.ts
