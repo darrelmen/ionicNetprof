@@ -18,10 +18,9 @@ Visual Studio Code-it has integrated debugging tools, git integration, code assi
 Please make sure latest Node 6 LTS and NPM 3+ are installed.
 Then, install the CLI globally (you may need sudo):
 
-
 - npm install -g ionic@3.9.2
 
-Check Ionic Docs https://ionicframework.com/docs/
+#### Check Ionic Docs.  https://ionicframework.com/docs/
 
 Create your working directory
 
@@ -49,47 +48,29 @@ We need to run this for the recording to be posted properly to the server.
 
   - cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.
 
-If you want to check the codes, you can open the downloaded code from your editor.
+##### Note : Most of the codes are on are on src directory.
 
-All of the codes are on src directory.
+### Running on Android Emulator/Android Device
 
-
-Running on Android Emulator/Android Device
-
-Open Android studio
-
-Find your project then go to platforms/android
-
-Create an AVD (Android Virtual Device) emulator
-
-Tools/AVD Manager
-
-Click on LogCat - to view the logs
-
-Click on Run then select your emulator
+- Open Android studio
+- Find your project then go to platforms/android
+- Create an AVD (Android Virtual Device) emulator
+- - Tools/AVD Manager
+- Click on LogCat - to view the logs
+- Click on Run then select your emulator
 
 
-Running on Xcode/Ios Device
+### Running on Xcode/Ios Device
 
-Open xCode
-
-Find your project then go to platforms/ios/netProF-lite.xcodeproj
-
-Click on the project
-
-General/Signing/Team - select any provisioning you have.
-
-Run
+- Open xCode
+- Find your project then go to platforms/ios/netProF-lite.xcodeproj
+- Click on the project
+- General/Signing/Team - select any provisioning you have.
+- Run
 
 
-Note :
+##### Note : In order to run on browser we need to do minor changes to following files. These changes are needed because the Native-advance-http does not run on a browser and we need it to bypass CORs for iOS - we can fix this later when we have the correct certs and not use the native but the angular http.
 
-In order to run on browser we need to do minor changes to following files . 
-
-Auth-service.js
-
-Login.ts ,Chapterover.ts,
-
-Menu items.ts Record.ts 
-
-This is needed because the Native-advance-http does not run on a browser and we need it to bypass CORs for iOS - we can fix this later when we have the correct certs and not use the native but the angular http.
+- Auth-service.js
+- Login.ts ,Chapterover.ts,
+- Menu items.ts Record.ts
