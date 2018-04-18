@@ -1,25 +1,25 @@
 # ionicNetprof
-Ionic version of Netprof
 
-How to install netprof-lite ionic app
+## How to install netprof-lite ionic app on a Mac
 
 If you don’t have these installed yet. 
 
-Download and install the latest Android Studio. 
-Download and install the java sdk. 
-Download and install the latest Xcode. 
+- Download and install the latest Android Studio. 
+- Download and install the java sdk. 
+- Download and install the latest Xcode. 
 
-Any editor will work but I prefer to use 
-Visual Studio Code-it has and integrated debugging tools
-https://code.visualstudio.com/download
-Use Mac download
+Any editor will work but I prefer to use, 
+Visual Studio Code-it has integrated debugging tools, git integration, code assist and much more...
 
-Open a terminal
+- https://code.visualstudio.com/download
+
+- Open a terminal
+
 Please make sure latest Node 6 LTS and NPM 3+ are installed.
 Then, install the CLI globally (you may need sudo):
 
 
-npm install -g ionic@3.9.2
+- npm install -g ionic@3.9.2
 
 Check Ionic Docs https://ionicframework.com/docs/
 
@@ -27,27 +27,27 @@ Create your working directory
 
 Download or checkout ionicNetprof
 
-git checkout https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
+- git checkout https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
 
 Go to the ionicNetprof Directory
 
--- The first time will take several minutes to install all the plugins and dependencies
+The first time will take several minutes to install all the plugins and dependencies
 
-  npm install
+  - npm install
 
-  ionic cordova build android
+  - ionic cordova build android
 
-  ionic cordova build ios 
+  - ionic cordova build ios 
 
 If you get an error run this again.
 
-  ionic cordova plugin add cordova-plugin-file-transfer@1.6.3
+  - ionic cordova plugin add cordova-plugin-file-transfer@1.6.3
 
-  ionic cordova build android
+  - ionic cordova build android
 
-We need this for the recording to be posted properly to the server.
+We need to run this for the recording to be posted properly to the server.
 
-  cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.
+  - cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.
 
 If you want to check the codes, you can open the downloaded code from your editor.
 
