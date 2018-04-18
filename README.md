@@ -77,5 +77,7 @@ Then, install the CLI globally (you may need sudo):
 
 ### For deploying/download to Android.
 
-**Important!** Open this link on your android phone. This only works if you allow installation from 'Unknown sources' in Settings/General/Security.
+**Important!** Open this link on your android phone or if its not working then download this on your desktop and then copy it on your Android phone. 
+
 - https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof/blob/master/app-release-unsigned.apk
+- This only works if you allow installation from 'Unknown sources' in Settings/General/Security.
