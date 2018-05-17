@@ -7,6 +7,7 @@ If you don’t have these installed yet.
 - Download and install the latest Android Studio. 
 - Download and install the java sdk. 
 - Download and install the latest Xcode. 
+- Download and install the latest node.js.
 
 Any editor will work but I prefer to use, 
 Visual Studio Code-it has integrated debugging tools, git integration, code assist and much more...
