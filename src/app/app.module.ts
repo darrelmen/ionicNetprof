@@ -2,8 +2,8 @@ import { NgModule, ErrorHandler } from '@angular/core';
 import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
 import { FormsModule  } from '@angular/forms';
 import { CommonModule  } from '@angular/common';
+import { HttpClientModule,HttpClient } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
-
 import { MyApp } from './app.component';
 import { SearchListPage } from '../pages/searchlist/searchlist';
 import { MenuItemsPage } from '../pages/menuitems/menuitems';
@@ -11,6 +11,8 @@ import { MenuItemsPage } from '../pages/menuitems/menuitems';
 import { LogoutPage } from '../pages/logout/logout';
 import { FavoritePage } from '../pages/favorite/favorite';
 import { LoginPage } from '../pages/login/login';
+import { LanguagePage } from '../pages/language/language';
+
 //import {LanguageService} from '../providers/language-service/language-service'
 import {AuthService} from '../providers/auth-service/auth-service';
 import { DBProvider } from '../providers/db-provider/db-provider';
@@ -18,7 +20,7 @@ import { DBProvider } from '../providers/db-provider/db-provider';
 // import { MockBackend,MockConnection } from '@angular/http/testing';
 import { Storage } from '@ionic/storage';
 import {OrderByPipe} from '../pages/pipes/orderBy.pipe';
-import { HttpModule,Http} from '@angular/http';
+// import { HttpModule,Http} from '@angular/http';
 //import { FakeBackendProvider } from '../providers/mock-service/mock-service';
 
 import {HTTP} from "@ionic-native/http"
@@ -53,14 +55,16 @@ import { AutoPlayPage } from '../pages/autoplay/autoplay';
 
 import { FlashCardComponent } from '../components/flash-card/flash-card';
 
+import { ProgressPage } from '../pages/progress/progress';
 import { PlaylistPage } from '../pages/playlist/playlist';
 import { ProgressBarComponent } from '../components/progress-bar/progress-bar';
 import {ContactPage} from '../pages/contact/contact'
 import {AboutPage} from '../pages/about/about'
-//import { LongPressModule } from 'ionic-long-press'; 
+import { LongPressModule } from 'ionic-long-press'; 
+import { AndroidPermissions } from '@ionic-native/android-permissions';
+import { SpeechRecognition } from '@ionic-native/speech-recognition';
 
 //import {EmailComposer } from '@ionic-native/email-composer';
-//import { DragulaService} from 'ng2-dragula/ng2-dragula';
 
 //import { NativeHttpFallback, NativeHttpModule } from 'ionic-native-http-connection-backend';
 
@@ -87,31 +91,31 @@ export function getAuthHttp(http,storage) {
   declarations: [
     MyApp,LoginPage,
     SearchListPage,
-    LogoutPage,
+    LogoutPage,LanguagePage,
     RecordPage,MenuItemsPage,
     OthersoverPage,SortoverPage,
-    OrderByPipe,ContactPage,AboutPage,
+    OrderByPipe,ContactPage,AboutPage,ProgressPage,
     FavoritePage,QuizFillPage,QuizTransPage,AutoPlayPage,DropPage,DropQuizPage,MixMatchPage,MixMatchGamePage,
     FlashCardComponent,PlaylistPage,ProgressBarComponent
   ],
-  imports: [FormsModule,CommonModule,BrowserModule,HttpModule,  //LongPressModule, //NativeHttpModule,
-    IonicModule.forRoot(MyApp,{tabsPlacement: 'top'}),VirtualListModule,
+  imports: [FormsModule,CommonModule,BrowserModule, LongPressModule, //NativeHttpModule,HttpModule,
+    IonicModule.forRoot(MyApp,{tabsPlacement: 'top'}),VirtualListModule,HttpClientModule,
     IonicStorageModule.forRoot()
   ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,LoginPage,
-    LogoutPage,
+    LogoutPage,LanguagePage,
     MenuItemsPage,QuizFillPage,QuizTransPage,
     SearchListPage,RecordPage,
-    OthersoverPage,SortoverPage,ContactPage,AboutPage,
+    OthersoverPage,SortoverPage,ContactPage,AboutPage,ProgressPage,
     FavoritePage,PlaylistPage,AutoPlayPage,DropPage,DropQuizPage,MixMatchPage,MixMatchGamePage
   ],
-  providers: [StatusBar,Media,FileTransfer,TextToSpeech,FileTransferObject,File, Device,HTTP,  //EmailComposer,
+  providers: [StatusBar,Media,FileTransfer,TextToSpeech,FileTransferObject,File, Device,HTTP, AndroidPermissions,SpeechRecognition, //EmailComposer,
     SplashScreen,{
       provide: AuthHttp,
       useFactory: getAuthHttp,
-      deps: [Http, Storage]
+      deps: [HttpClient, Storage]
   },   // {provide: Http, useClass: Http, deps: [NativeHttpFallback, RequestOptions]},
     {provide:ErrorHandler, useClass: IonicErrorHandler}
       ,AuthHttp,AuthService,DBProvider,CommonUtils,RecordUtils],

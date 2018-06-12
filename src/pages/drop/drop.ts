@@ -45,8 +45,9 @@ export class DropPage {
                 this.siteName = site
             })
         })
-
+      this.theme=localStorage.getItem("theme")      
     }
+    theme:string
 
     ionViewCanEnter() {
         this.questions=[]

@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Http, Headers, RequestOptions, RequestOptionsArgs } from '@angular/http';
-import { Platform } from 'ionic-angular';
-
+//import {   RequestOptions, RequestOptionsArgs } from '@angular/http';
+import { Platform, normalizeURL } from 'ionic-angular';
+import {
+    HttpHeaders, HttpClient, HttpParams,
+    HttpResponse
+} from '@angular/common/http';
+//import { RequestOptions , RequestOptionsArgs} from '@angular/common';
 import { JwtHelper, tokenNotExpired } from 'angular2-jwt';
 import { TimeoutError } from 'rxjs';
 import { Observable } from 'rxjs/Observable'
@@ -18,7 +22,8 @@ import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-nati
 import { Item } from '../../model/item'
 //import { Contents } from '../../model/contents'
 //import { Child } from '../../model/child'
-
+import { Sites } from '../../model/sites'
+import { set as setCookie, get as getCookie } from 'es-cookie';
 
 //import {sign} from 'jsonwebtoken';
 
@@ -27,16 +32,17 @@ import { Item } from '../../model/item'
 export class AuthService {
     LOGIN_URL: string = "http://10.102.12.199:3001/sessions/create";   //10.0.2.2 same as localhost, used when running emulator 10.102.12.199 --my actual ip
     SIGNUP_URL: string = "/scoreServlet";
-    SITES_URL: string = "https://np.ll.mit.edu/sites.json";
+    SITES_URL: string = "https://netprof.ll.mit.edu/netprof/scoreServlet?projects" // "https://np.ll.mit.edu/sites.json";
+    NET_URL: string = "https://netprof.ll.mit.edu/netprof"
     SCORE_SERVLET: string = "/scoreServlet?nestedChapters";
     RECORD_SERVLET: string = "/scoreServlet";
-    FORGOT_PASS: string = "https://np.ll.mit.edu/npfClassroomCM/scoreServlet?resetPassword="
-    FORGOT_USER: string = "https://np.ll.mit.edu/npfClassroomCM/scoreServlet?forgotUsername="
-
+    FORGOT_PASS: string = "/scoreServlet?resetPassword="
+    FORGOT_USER: string = "/scoreServlet?forgotUsername="
+    SITE_ID: string
     SITE_NAME: string
-    LANG_URL: any
     USER_ID: string
-    contentHeader: Headers = new Headers({
+    PAS_ID: string
+    contentHeader: HttpHeaders = new HttpHeaders({
         "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "X-Requested-With"
         , "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS,Set-Cookie"
     });
@@ -49,23 +55,10 @@ export class AuthService {
     error: string;
     isOff = 0
     items: Array<Item> = []
-    lesson: Array<{
-        type: string
-        name: string
-        count: number
-    }> = []
-    sublesson: Array<{
-        type: string
-        name: string
-        count: number
-        lesson?: {
-            type: any
-            name: any
-        }
-    }> = []
+
 
     constructor(
-        public http: Http,
+        public http: HttpClient,
         public httpNative: HTTP,
         public platform: Platform,
         public db: Storage,
@@ -109,167 +102,146 @@ export class AuthService {
         //  }
     }
 
+
     //using observable - has lazy processing 
     loginMD5(credentials) {
-        let hash = CryptoJS.MD5(credentials.password).toString(CryptoJS.enc.Hex);
+        let hash: string = CryptoJS.MD5(credentials.password).toString(CryptoJS.enc.Hex);
         //credentials.password=hash;
         //var cred = { hasUser: credentials.username, p: hash }
-        this.LANG_URL = credentials.site.url
-        if (credentials.site.name == "Mandarin") {
-            this.SITE_NAME = "CM"
-        } else {
-            this.SITE_NAME = credentials.site.name
-        }
-        let url = this.LANG_URL
+        //this.LANG_URL = credentials.site.url
+        //if (credentials.site.name == "Mandarin") {
+        //    this.SITE_NAME = "CM"
+        //} else {
+        this.SITE_NAME = credentials.site.name
+        //}
+        let url: string
+        if (credentials.username.length < 5) credentials.username = credentials.username + "_"  //hash password should be uppercase
+
+        let header = new HttpHeaders({
+            "Content-Type": "application/json",
+            "userid": credentials.username, "pass": credentials.password, "projid": credentials.site.id.toString()
+        });
         //let testURL = "https://np.ll.mit.edu/npfClassroomPashto1/scoreServlet?hasUser=" + cred.hasUser + "&p=" + hash
         if (this.platform.is("core") || this.platform.is("mobileweb")) {
-            url = "/npfClassroom" + this.SITE_NAME + "/scoreServlet?hasUser=" + credentials.username + "&p=" + hash
-            // for testing only
-            // return this.http.get(url, { headers: this.contentHeader, withCredentials: true })
-            //     .map((res) => {
-            //         // login successful if there's a jwt token in the response (.id_token is defined in the auth service API - this.LOGIN_URL)
-            //         this.user = credentials.username
-            //         localStorage.setItem('username', this.user);
-            //         localStorage.setItem('userid', res.json().userid);
-            //         this.USER_ID = res.json().userid
-            //         console.log("user id " + res.json().userid)
-            //         console.log("pass " + res.json().passwordCorrect)
-            //         // let token = res.json().id_token
-            //         //  console.log("res " + token)
-            //         if (res.json().passwordCorrect === true) {
-            //             //    console.log("res " + token)
-            //             //     this.authSuccess(token);
-            //             // return true to indicate successful login
-            //             //this.getContents(credentials)
-            //             return true
-            //         } else {
-            //             // return false to indicate failed login
-            //             return false;
-            //         }
-            //     })
+            //  url = "/npfClassroom" + this.SITE_NAME + "/scoreServlet?hasUser=" + credentials.username + "&p=" + hash
+            url = "/scoreServlet?hasUser=" + credentials.username + "&p=" + credentials.password
 
         } else {
-            url = credentials.site.url + "/scoreServlet?hasUser=" + credentials.username + "&p=" + hash
-
-            // for deployment
-            this.httpNative.setDataSerializer('json');
-            this.httpNative.acceptAllCerts(true)
-            return this.httpNative.get(url, {}, { "Content-Type": "application/json" })
-                .then((data) => {
-                    //return string JSON 
-                    let res = JSON.parse(data.data)
-
-                    this.user = credentials.username
-                    localStorage.setItem('username', this.user);
-                    localStorage.setItem('userid', res.userid);
-                    this.USER_ID = res.userid
-                    console.log("user id " + res.userid)
-                    console.log("pass " + res.passwordCorrect)
-                    // let token = res.json().id_token
-                    //  console.log("res " + token)
-                    if (res.passwordCorrect === true) {
-                        //    console.log("res " + token)
-                        //     this.authSuccess(token);
-                        // return true to indicate successful login
-                        //this.getContents(credentials)
-                        return true
-                    } else {
-                        // return false to indicate failed login
-                        return false;
-                    }
-                })
-                .catch(error => {
-
-                    console.log("Site upload error " + error.status);
-                    console.log(error.error); // error message as string
-                    console.log(error.headers);
-
-                });
+            // url = credentials.site.url + "/scoreServlet?hasUser=" + credentials.username + "&p=" + hash
+            url = this.NET_URL + "/scoreServlet?hasUser=" + credentials.username + "&p=" + credentials.password
         }
-    }
-    //using observable - has lazy processing 
-    loginObs(credentials) {
-        return this.http.post(this.LOGIN_URL, JSON.stringify(credentials), { headers: this.contentHeader })
-            .map((res) => {
-                // login successful if there's a jwt token in the response (.id_token is defined in the auth service API - this.LOGIN_URL)
-                let token = res.json().id_token
-                if (token) {
-                    this.authSuccess(token);
+        // for testing only web only
+        // return this.http.get(url, { headers: header, observe: 'response', withCredentials: true })
+        //     .map((res: any) => {
+        //         // login successful if there's a jwt token in the response (.id_token is defined in the auth service API - this.LOGIN_URL)
+        //         console.log("COOK0 " + window.document.cookie)
+        //         // var setCook =getCookie('JSESSIONID')
+        //         // console.log( "cook " + setCook)
+
+        //         console.log("session " + res.headers.get("cookie"))
+        //         this.user = credentials.username
+        //         //         localStorage.setItem("ck", this.httpNative.getCookieString(url))
+
+        //         localStorage.setItem('username', this.user);
+        //         localStorage.setItem('userid', res.body.userid);
+        //         localStorage.setItem('siteid', credentials.site.id.toString());
+        //         this.USER_ID = res.userid
+        //         this.SITE_ID = credentials.site.id.toString()
+        //         console.log("user id " + res.body.userid)
+        //         console.log("pass " + res.body.passwordCorrect)
+        //         // let token = res.json().id_token
+        //         //  console.log("res " + token)
+        //         if (res.body.passwordCorrect === "TRUE") {
+        //             //    console.log("res " + token)
+        //             //     this.authSuccess(token);
+        //             // return true to indicate successful login
+        //             //this.getContents(credentials)
+        //             return true
+        //         } else {
+        //             // return false to indicate failed login
+        //             return false;
+        //         }
+        //     })
+
+        // for deployment
+        this.httpNative.setDataSerializer('json');
+        this.httpNative.acceptAllCerts(true)
+
+        return this.httpNative.get(url, {},
+            { "Content-Type": "application/json", "userid": credentials.username, "pass": credentials.password, "projid": credentials.site.id.toString() })
+            .then((data) => {
+                //return string JSON 
+                let res = JSON.parse(data.data)
+                this.user = credentials.username
+                localStorage.setItem('username', this.user);
+                localStorage.setItem('userid', res.userid);
+                this.USER_ID = res.userid
+                this.SITE_ID = credentials.site.id.toString()
+                this.PAS_ID = credentials.password
+                console.log("user id " + res.userid)
+                console.log("pass " + res.passwordCorrect)
+                console.log("cookie  " + this.httpNative.getCookieString(url))
+                localStorage.setItem("siteid", credentials.site.id.toString())
+
+                localStorage.setItem("ck", this.httpNative.getCookieString(url))
+                // let token = res.json().id_token
+                //  console.log("res " + token)
+                if (res.passwordCorrect === "TRUE") {
+                    //    console.log("res " + token)
+                    //     this.authSuccess(token);
                     // return true to indicate successful login
                     //this.getContents(credentials)
-                    console.log(" login true")
-
                     return true
                 } else {
                     // return false to indicate failed login
-                    console.log(" login false")
                     return false;
                 }
-            }).shareReplay()
-        // .catch(this.handleError);
+            })
+            .catch(error => {
+
+                console.log("login error " + error);
+                console.log(error.error); // error message as string
+                console.log(error.headers);
+
+            });
+
     }
 
-    private handleError(error: any) {
-        // In a real world app, we might use a remote logging infrastructure
-        // We'd also dig deeper into the error to get a better message
-        let errMsg = (error.message) ? error.message :
-            error.status ? `${error.status} - ${error.statusText}` : 'Server error';
-        return Observable.throw(errMsg);
-    }
-
-
-    //using promise  old style
-    login(credentials) {
-        console.log(credentials);
-        return new Promise((resolve, reject) => {
-            this.http.post(this.LOGIN_URL, JSON.stringify(credentials), { headers: this.contentHeader })
-                .map(res => res.json())
-                .subscribe(
-                    data => {
-                        console.log(data)
-                        this.authSuccess(data.id_token);
-                        console.log('data.id_token' + data.id_token)
-                        resolve(data)
-                    },
-                    err => {
-                        this.error = err;
-                        reject(err)
-                    }
-                );
-        });
-    }
 
 
     signup(data) {
         let hashPass = CryptoJS.MD5(data.pass).toString(CryptoJS.enc.Hex);
         let hashEmail = CryptoJS.MD5(data.email.toLowerCase()).toString(CryptoJS.enc.Hex);
         let signUrl: any
-        let contentHeader: Headers = new Headers({
+        let contentHeader = new HttpHeaders({
             "Content-Type": "application/x-www-form-urlencoded", "user": data.username, "passwordH": hashPass, "emailH": hashEmail,
             "device": this.device.uuid, "deviceType": this.device.platform, "request": "addUser", "reqid": "1"
         });
         if (this.platform.is("core") || this.platform.is("mobileweb")) {
-            signUrl = "/npfClassroomCM/scoreServlet"
-            return this.http.post(signUrl, {}, { headers: contentHeader })
-                .map(res => {
-                    res.json()
-                });
+            signUrl = "/scoreServlet"
         } else {
-            signUrl = this.LANG_URL + "/scoreServlet"
-            //for deployment
-            this.httpNative.setDataSerializer('json');
-            this.httpNative.acceptAllCerts(true)
-            return this.httpNative.post(signUrl, {}, { "Content-Type": "application/json" })
-                .then((data) => {
-                    //return string JSON 
-                    return JSON.parse(data.data)
-                })
-                .catch(error => {
-                    console.log("Items upload error " + error.status);
-                    console.log(error.error); // error message as string
-                    console.log(error.headers);
-                });
+            signUrl = this.NET_URL + "/scoreServlet"
         }
+        //for testing
+        // return this.http.post(signUrl, {}, { headers: contentHeader })
+        //     .map(res => {
+        //         //res.json()
+        //         res
+        //     });
+
+        //for deployment
+        this.httpNative.setDataSerializer('json');
+        this.httpNative.acceptAllCerts(true)
+        return this.httpNative.post(signUrl, {}, { "Content-Type": "application/json" })
+            .then((data) => {
+                //return string JSON 
+                return JSON.parse(data.data)
+            })
+            .catch(error => {
+                console.log("Items upload error " + error);
+                console.log(error.error); // error message as string
+                console.log(error.headers);
+            });
     }
 
     logout() {
@@ -303,81 +275,86 @@ export class AuthService {
     getSites() {
         // return new Promise((resolve, reject) => {
         this.checkPlatform()
-        if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
-          //  return this.http.get(this.SITES_URL, { headers: this.contentHeader })
-          //      .map((res) => res.json())
-        } else {
-            // for deployemnt
-            this.httpNative.setDataSerializer('json');
-            this.httpNative.acceptAllCerts(true)
+        console.log("sites " + this.SITES_URL)
+        // if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
+        //for testing   
+        // return this.http.get(this.SITES_URL, { headers: this.contentHeader, withCredentials: true })
+        //     .map((res: Sites) => res)
+        //} else {
 
-            return this.httpNative.get(this.SITES_URL, {}, { "Content-Type": "application/json" })
-                .then((data) => {
-                    //return string JSON 
-                    console.log("Site upload " + data.data);
+        // for deployemnt
+        this.httpNative.setDataSerializer('json');
+        this.httpNative.acceptAllCerts(true)
 
-                    return JSON.parse(data.data)
+        return this.httpNative.get(this.SITES_URL, {}, { "Content-Type": "application/json" })
+            .then((data) => {
+                //return string JSON 
+                //  console.log("Site upload " + data.data);
 
-                })
-                .catch(error => {
+                return JSON.parse(data.data)
 
-                    console.log("Site upload error " + error.status);
-                    console.log(error.error); // error message as string
-                    console.log(error.headers);
+            })
+            .catch(error => {
 
-                });
-        }
+                console.log("Site upload error " + error.status);
+                console.log(error.error); // error message as string
+                console.log(error.headers);
+
+            });
+
     }
 
     forgotUserName(data) {
 
-        if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
-          //for testing
-          //  return this.http.get(this.FORGOT_USER + data.Email, { headers: this.contentHeader })
-          //      .map((res) => res.json())
-        } else {
-            //for deployment
-            this.httpNative.acceptAllCerts(true)
-            return this.httpNative.get(this.FORGOT_USER + data.Email.toLowerCase(), {}, { "Content-Type": "application/json" })
-                .then((data) => {
-                    //return string JSON 
-                    return JSON.parse(data.data)
-                })
-                .catch(error => {
-                    console.log("Items upload error " + error.status);
-                    console.log(error.error); // error message as string
-                    console.log(error.headers);
-                });
+        // if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
+        //for testing
+        //    return this.http.get(this.FORGOT_USER + data.Email, { headers: this.contentHeader })
+        //        .map((res) => res)
+        // } else {
+        //for deployment
+        this.httpNative.acceptAllCerts(true)
+        this.httpNative.setDataSerializer('json');
+        return this.httpNative.get(this.NET_URL + this.FORGOT_USER + data.Email.toLowerCase(), {}, { "Content-Type": "application/json" })
+            .then((data) => {
+                //return string JSON 
+                return JSON.parse(data.data)
+            })
+            .catch(error => {
+                console.log("Items upload error " + error.status);
+                console.log(error.error); // error message as string
+                console.log(error.headers);
+            });
 
-        }
+        // }
     }
 
     forgotPassword(data) {
 
-        if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
+        //if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
         //for testing  
-        //return this.http.get(this.FORGOT_PASS + data.Username + "&email=" + data.Email, { headers: this.contentHeader })
-         //       .map((res) => res.json())
-        } else {
-            //for deployment
-            this.httpNative.acceptAllCerts(true)
-            return this.httpNative.get(this.FORGOT_PASS + data.Username + "&email=" + data.Email.toLowerCase(), {}, { "Content-Type": "application/json" })
-                .then((data) => {
-                    //return string JSON 
-                    return JSON.parse(data.data)
-                })
-                .catch(error => {
-                    console.log("Items upload error " + error.status);
-                    console.log(error.error); // error message as string
-                    console.log(error.headers);
-                });
+        // return this.http.get(this.FORGOT_PASS + data.Username + "&email=" + data.Email, { headers: this.contentHeader })
+        //        .map((res) => res)
+        // } else {
+        //for deployment
+        this.httpNative.acceptAllCerts(true)
+        this.httpNative.setDataSerializer('json');
+        return this.httpNative.get(this.NET_URL + this.FORGOT_PASS + data.Username + "&email=" + data.Email.toLowerCase(), {}, { "Content-Type": "application/json" })
+            .then((data) => {
+                //return string JSON 
+                return JSON.parse(data.data)
+            })
+            .catch(error => {
+                console.log("Items upload error " + error.status);
+                console.log(error.error); // error message as string
+                console.log(error.headers);
+            });
 
-        }
+        //  }
     }
 
     checkPlatform() {
         if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
-            this.SITES_URL = '/sites.json';
+            this.SITES_URL = "/scoreServlet?projects"; //'/sites.json';
 
             // this.SITES_URL = 'https://cors-anywhere.herokuapp.com/https://np.ll.mit.edu/sites.json';
             console.log("cors " + this.SITES_URL)
@@ -386,140 +363,92 @@ export class AuthService {
     }
 
 
-    getScores(lesson) {
-
-        //let userid = localStorage.getItem("userid")
-        var scoreUrl;
-        // let testURL = url + "scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson 
-        let userid = localStorage.getItem('userid');
-        console.log("url " + this.LANG_URL + " userid " + userid + " lesson " + lesson)
-        if (this.platform.is("core") || this.platform.is("mobileweb")) {
-            scoreUrl = "/npfClassroomCM/scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson
-            //for testng
-           // return this.http.get(scoreUrl, { headers: this.contentHeader })
-            //    .map((res) => res.json())
-        } else {
-            scoreUrl = this.LANG_URL + "/scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson
-            console.log("scoreUrl " + scoreUrl)
-
-            //for deployment
-            this.httpNative.setDataSerializer('json');
-            this.httpNative.acceptAllCerts(true)
-            return this.httpNative.get(scoreUrl, {}, { "Content-Type": "application/json" })
-                .then((data) => {
-                    //return string JSON 
-                    return JSON.parse(data.data)
-                })
-                .catch(error => {
-
-                    console.log("Site upload error " + error.status);
-                    console.log(error.error); // error message as string
-                    console.log(error.headers);
-
-                });
-
-            //https://np.ll.mit.edu/npfClassroomCM/scoreServlet?request=chapterHistory&user=171&Unit=2&Lesson=8
-        }
-    }
-
-    postRecording(recordFile, ex_id: string, filesize: string, filename) {
-
-        this.USER_ID = localStorage.getItem('userid')
-        let options: FileUploadOptions = {
-            fileKey: 'file',
-            fileName: filename,
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded", "user": this.USER_ID, "deviceType": this.device.platform, "device": this.device.uuid
-                , "exercise": ex_id, "request": "decode", "reqid": "1"
-            },
-            mimeType: "audio/x-wav"
-        }
-
-        // //recordFile = normalizeURL("/Users/darreljohnmendoza/Desktop/1453_rec.wav")
-        // //return this.http.post("https://np.ll.mit.edu/npfClassroomEnglish/scoreServlet", recordFile, { headers: contentHeaders })
-        var recordUrl
-        if (this.platform.is("core") || this.platform.is("mobileweb")) {
-            //for testing Chinese
-            recordUrl = "/npfClassroomCM/scoreServlet"
-        } else {
-            recordUrl = this.LANG_URL + "/scoreServlet"
-        }
-        console.log("filePath " + recordFile)
-        console.log("servlet url " + recordUrl)
-
-        let ft: FileTransferObject = this.transfer.create();
-        return ft.upload(recordFile, encodeURI(recordUrl), options, true)
-            //return this.httpNative.post(recordUrl, recordFile,{headers: this.contentHeader})
-            .then((data) => {
-                console.log("status " + data.response);
-                console.log("data " + data.responseCode); // data received by server
-                return JSON.parse(data.response)
-            })
-            .catch(error => {
-                console.log("Record Score Error " + error.status);
-                console.log(error.error); // error message as string
-                console.log(error.headers);
-            });
-        //recordFile="file:///storage/emulated/0/Android/data/edu.dliflc.netProFlite/files/CM/bestAudio/1453/regular_1419377749679_by_99.wav"
-        // return this.http.post(recordUrl, recordFile, { headers: contentHeaders })
-        //     .map((res) =>{
-
-        //         console.log("status " + res.status)
-        //         console.log("headers " + res.json().score)
-        //           return res.json()})
-    }
-
-
     load(query) {
 
-        console.log("query url " + query.url)
         //for testing
+        let url: string
         if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
-            let siteName = query.url.split("https://np.ll.mit.edu/", 2)
-            // to accomodate the Mandarin for CM
-            console.log("sitename " + siteName[1])
-            //for testing
-            // return this.http.get("/" + siteName[1] + this.SCORE_SERVLET, { headers: this.contentHeader })
-            //     .map((res) => {
-            //         console.log("query name " + query.name)
-            //         this.parseItemsFromDB(query.name, res.json())
-            //     })
-
+            url = this.SCORE_SERVLET
         } else {
-            // return this.http.get(query.url + this.SCORE_SERVLET, { headers: this.contentHeader })
-            //     .map((res) => {
-            //         this.db.get("latestSiteName").then((siteName) => {
-            //             this.parseItemsFromDB(query.name, res.json())
-            //         })
-            //     })
+            url = this.NET_URL + this.SCORE_SERVLET
+        }
+        //for testing
+        // let header = new HttpHeaders({  "Content-Type": "application/json","projid":query.id.toString()})
+        // return this.http.get(url, { headers: header,withCredentials:true})
+        //    .map((res) => {
+        //         console.log("query name " + query.name)
+        //          this.parseItemsFromDB(query.name, res)
+        //     })
 
 
-            // for deployment
-            this.httpNative.setDataSerializer('json');
-            this.httpNative.acceptAllCerts(true)
-            return this.httpNative.get(query.url + this.SCORE_SERVLET, {}, { "Content-Type": "application/json" })
+        // for deployment
+        console.log("lang " + query.language + "   new id " + query.id + " current id " + this.SITE_ID + " pass " + this.PAS_ID + " user " + this.USER_ID)
+        this.httpNative.setDataSerializer('json');
+        this.httpNative.acceptAllCerts(true)
+        if (query.id == this.SITE_ID) {
+            return this.httpNative.get(url, {}, { "Content-Type": "application/json", "projid": query.id.toString() })
                 .then((data) => {
                     //return string JSON 
-                    this.parseItemsFromDB(query.name, JSON.parse(data.data))
-                    //   return JSON.parse(data.data)
+                    this.parseItemsFromDB(query.language, JSON.parse(data.data))
+                    return this.items
                 })
                 .catch(error => {
-                    console.log("Items upload error " + error.status);
-                    console.log(error.error); // error message as string
-                    console.log(error.headers);
+                    console.log("Items upload error " + error);
                 });
+        } else {
+            // when selecting a different language wwithout logout
+            let username = localStorage.getItem("username")
+            return this.httpNative.get(this.NET_URL + "/scoreServlet?hasUser=" + username + "&p=" + this.PAS_ID, {},
+                { "Content-Type": "application/json", "userid": username, "pass": this.PAS_ID.toString(), "projid": query.id.toString() })
+                .then((dat) => {
+                    localStorage.setItem("siteid", query.id.toString())
+
+                    localStorage.setItem("ck", this.httpNative.getCookieString(this.NET_URL + "/scoreServlet?hasUser=" + username + "&p=" + this.PAS_ID))
+                    let res = JSON.parse(dat.data)
+                    if (res.passwordCorrect === "TRUE") {
+
+                        return this.httpNative.get(url, {}, { "Content-Type": "application/json", "projid": query.id.toString() })
+                            .then((data) => {
+                                //return string JSON 
+                                this.parseItemsFromDB(query.language, JSON.parse(data.data))
+                                return this.items
+                            })
+                            .catch(error => {
+                                console.log("Items upload error " + error);
+                            });
+                    }
+                })
         }
     }
 
+
+    lessonMenu: Array<{
+        type: string
+        name: string
+        count: number
+        sublesson?: Array<{
+            type: any
+            name: any
+            count: number
+        }>
+        topic?: Array<{
+            type: any
+            name: any
+            count: number
+            subtopic?: Array<{
+                type: any
+                name: any
+                count: number
+            }>
+        }>
+    }> = []
 
 
     parseItemsFromDB(siteName, content) {
         this.items = []
-        this.lesson = []
-        this.sublesson = []
+        this.lessonMenu = []
         if (content.content[0].children.length == 0) {
             // 1 level heirarchy 
-            console.log("Items upload  " + content);
 
             for (let items of content.content) {
                 let lesson: string
@@ -533,25 +462,29 @@ export class AuthService {
                     tmpItem.lesson = lesson
                     tmpItem.lessonId = lessonId
                     //let ct= this.parseWords(siteName,item.ct)
-                   // let fl= this.parseWords(siteName,item.fl)
-                    tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + item.fl + " " + item.en + " " + item.ct
+                    // let fl= this.parseWords(siteName,item.fl)
+                    tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + item.fl + " " + item.en + " " + item.ct + " " + item.tl
                     //for scores and history, needs to add manually otherwise it will not show up later although it is already initialized. 
                     // make sense you dont need to add what you dont need
                     tmpItem.s = "0"
                     tmpItem.h = []
                     tmpItem.scores = []
+                    tmpItem.isRecord = false
+                    tmpItem.isScored = false
+                    tmpItem.isAddPlaylist = false
                     this.items.push(tmpItem)
                     count++
                 }
-                this.lesson.push({ type: lesson, name: lessonId, count: count })
+                this.lessonMenu.push({ type: lesson, name: lessonId, count: count, sublesson: [], topic: [] })
             }
         } else {
             // 2 level hierarchy 
+            let lessIdx = 0
             for (let children of content.content) {
                 let lesson = children.type
                 let lessonId = children.name
                 let lessonTotal = 0
-
+                this.lessonMenu.push({ type: lesson, name: lessonId, count: lessonTotal, sublesson: [], topic: [] })
                 for (let items of children.children) {
                     let sublesson = items.type
                     let sublessonId = items.name
@@ -564,66 +497,173 @@ export class AuthService {
                         tmpItem.sublessonId = sublessonId
                         //let ct= this.parseWords(siteName,item.ct)
                         //let fl= this.parseWords(siteName,item.fl)
-                        tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + sublesson + " " + sublessonId + " " + item.fl + " " + item.en + " " + item.ct
+                        tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + sublesson + " " + sublessonId + " " + item.fl + " "
+                            + item.en + " " + item.ct + " " + item.tl
                         // tmpItem.searchTopic= lesson +" " + sublesson + " " + item.ct + " " + item.fl + " " + item.en
                         //for scores and history, needs to add manually otherwise it will not show up later although it is already initialized. 
                         // make sense you dont need to add what you dont need
                         tmpItem.s = "0"
                         tmpItem.h = []
                         tmpItem.scores = []
-
+                        tmpItem.isRecord = false
+                        tmpItem.isScored = false
+                        tmpItem.isAddPlaylist = false
                         this.items.push(tmpItem)
                         count++
                     }
-                    this.sublesson.push({ type: sublesson, name: sublessonId, count: count, lesson: { type: lesson, name: lessonId } })
+                    this.lessonMenu[lessIdx].sublesson.push({ type: sublesson, name: sublessonId, count: count })
                     lessonTotal++
+
                 }
-                this.lesson.push({ type: lesson, name: lessonId, count: lessonTotal })
+                this.lessonMenu[lessIdx].count = lessonTotal
+                lessIdx++
             }
-            this.sublesson = this.sublesson.sort(function (a, b) {
-                return parseFloat(a.name) - parseFloat(b.name);
-            })
         }
 
         this.items = this.items.sort(function (a, b) {
             return a.fl.localeCompare(b.fl)
         })
 
-        // this.searchTerm =this.lesson[0].type + " " + this.lesson[0].name
-        this.lesson = this.lesson.sort(function (a, b) {
+        this.lessonMenu = this.lessonMenu.sort(function (a, b) {
             return parseFloat(a.name) - parseFloat(b.name);
         })
         this.db.set(siteName, this.items)
-        this.db.set(siteName + "lesson", this.lesson)
-        this.db.set(siteName + "sublesson", this.sublesson)
-
+        this.db.set(siteName + "menu", this.lessonMenu)
         console.log(" populate items " + this.items.length)
-
+        console.log(" populate items me " + siteName + "menu")
     }
 
 
     //not used currently
-    parseWords(siteName,words:string){
-    var wordList="";
-    if (siteName == "Mandarin" || siteName == "Korean") {
-        words.split('').forEach((word) =>{
-            wordList = wordList + word + "  "
-        })
-      //  console.log(" ct " + wordList)
-        // } else if (site == "MSA" || site == "Egyptian" || site == "Levantine" || site == "Pashto1" || site == "Pashto2" || site == "Pashto3"
-        //   || site == "Dari" || site == "Farsi" || site == "Urdu" || site == "Iraqi" || site == "Sudanese") {
-        //   wordsRightOrder = this.randomizeAnswers(item.ct.split(','))
-    }else if (siteName == "Japanese"){
-        words.split('').forEach((word) =>{
-            wordList = wordList + word + "  "
-        })
-   //     console.log(" fl " + wordList)
-    } else {
-       
-        wordList = words
-        console.log(" flct " + wordList)
+    parseWords(siteName, words: string) {
+        var wordList = "";
+        if (siteName == "Mandarin" || siteName == "Korean") {
+            words.split('').forEach((word) => {
+                wordList = wordList + word + "  "
+            })
+            //  console.log(" ct " + wordList)
+            // } else if (site == "MSA" || site == "Egyptian" || site == "Levantine" || site == "Pashto1" || site == "Pashto2" || site == "Pashto3"
+            //   || site == "Dari" || site == "Farsi" || site == "Urdu" || site == "Iraqi" || site == "Sudanese") {
+            //   wordsRightOrder = this.randomizeAnswers(item.ct.split(','))
+        } else if (siteName == "Japanese") {
+            words.split('').forEach((word) => {
+                wordList = wordList + word + "  "
+            })
+        } else {
+            wordList = words
+            console.log(" flct " + wordList)
+        }
+        return wordList
     }
-    return wordList
+
+
+    getScores(lesson) {
+        //let userid = localStorage.getItem("userid")
+        var scoreUrl;
+        // let testURL = url + "scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson 
+        let userid = localStorage.getItem('userid');
+        this.SITE_ID = localStorage.getItem("siteid")
+        console.log("url " + this.NET_URL + " userid " + userid + " lesson " + lesson + " site_id " + this.SITE_ID)
+        if (this.platform.is("core") || this.platform.is("mobileweb")) {
+            scoreUrl = "/scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson
+            //   return this.http.get(scoreUrl, { headers: this.contentHeader })
+            //       .map((res) => res)
+        } else {
+            scoreUrl = this.NET_URL + "/scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson
+            console.log("scoreUrl " + scoreUrl)
+            let head = new HttpHeaders({
+                "Content-Type": "application/json", "projid": this.SITE_ID
+            })
+            //for testng
+            // return this.http.get(scoreUrl, {headers: head})
+            // .map((res) => res)
+
+            //for deployment
+            this.httpNative.setDataSerializer('json');
+            this.httpNative.acceptAllCerts(true)
+            return this.httpNative.get(scoreUrl, {}, { "Content-Type": "application/json", "projid": this.SITE_ID })
+                .then((data) => {
+                    //return string JSON 
+                    return JSON.parse(data.data)
+                })
+                .catch(error => {
+                    console.log("Score upload error " + error);
+                });
+
+            //https://np.ll.mit.edu/npfClassroomCM/scoreServlet?request=chapterHistory&user=171&Unit=2&Lesson=8
+        }
     }
+
+
+    postRecording(recordFile: string, ex_id: string, filesize: string, filename) {
+        this.USER_ID = localStorage.getItem('userid')
+        var recordUrl
+        if (this.platform.is("core") || this.platform.is("mobileweb")) {
+            //for testing Chinese
+            recordUrl = "/scoreServlet"
+        } else {
+            recordUrl = this.NET_URL + "/scoreServlet"
+        }
+        console.log("filePath to upload " + recordFile)
+        console.log("servlet url " + recordUrl)
+        let cookie = localStorage.getItem('ck')
+        let options: FileUploadOptions = {
+            fileKey: 'file',
+            fileName: filename,
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded", "user": this.USER_ID, "deviceType": this.device.platform, "device": this.device.uuid
+                , "exercise": ex_id, "request": "decode", "reqid": "1", "projid": this.SITE_ID, "cookie": cookie
+            },
+            mimeType: "audio/x-wav",
+
+        }
+        let ft: FileTransferObject = this.transfer.create();
+
+        return ft.upload(recordFile, encodeURI(recordUrl), options, true)
+            //return this.httpNative.post(recordUrl, recordFile,{headers: this.contentHeader})
+            .then((data) => {
+                console.log("status " + data.response);
+                return JSON.parse(data.response)
+            })
+            .catch(error => {
+                console.log("Record Score Error " + error);
+                return null
+            });
+
+
+        //for deployment  --- not in place
+        // let headers=  {
+        //         fileKey: 'file',
+        //        headers: {
+        //         "content-type": "application/x-www-form-urlencoded", "user": this.USER_ID.toString(), "deviceType": this.device.platform.toString(),
+        //          "device": this.device.uuid.toString()
+        //         , "exercise": ex_id.toString(), "request": "decode", "reqid": "1", "projid": this.SITE_ID.toString()
+        //         },
+        //         mimeType: "audio/x-wav"
+        //     }
+
+        //     this.httpNative.acceptAllCerts(true)
+        //     this.httpNative.setDataSerializer('urlencoded');
+        //     let recPath= recordFile.substring(0,recordFile.length-filename.length)
+        //     console.log(filename + " rec " + recPath + " e " + ex_id+ " s  " + this.SITE_ID + " u " + this.USER_ID) 
+        //    return this.file.resolveLocalFilesystemUrl(recordFile).then(fe => {
+        //     console.log(" fe " + fe.nativeURL) 
+
+        //         return this.httpNative.uploadFile(recordUrl, {},{"Content-Type": "application/x-www-form-urlencoded",
+        //         "user": this.USER_ID, "deviceType": this.device.platform,
+        //         "device": this.device.uuid
+        //        , "exercise": ex_id.toString(), "request": "decode", "reqid": "1", "projid": this.SITE_ID
+        //        },fe.toURL() , "wav")
+        //         .then((data) => {
+        //             //return string JSON 
+        //             console.log("data " + data.data)
+        //             return JSON.parse(data.data)
+        //         })
+        //         .catch(error => {
+        //             console.log("Audio upload error " + error);
+        //         });
+        //     })
+    }
+
 }
 

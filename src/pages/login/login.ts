@@ -5,7 +5,7 @@ import { AuthService } from '../../providers/auth-service/auth-service';
 import { CommonUtils } from '../../utils/common-utils'
 import { Storage } from '@ionic/storage';
 import { MenuItemsPage} from '../../pages/menuitems/menuitems';
-
+import { Sites} from '../../model/sites'
 import {
   FormGroup,
   FormControl,
@@ -41,8 +41,10 @@ export class LoginPage implements OnInit {
    // public emailComposer: EmailComposer
   ) {
     this.platform.ready().then(() => { this.db })
-
+    this.theme=localStorage.getItem("theme")  
+    
   }
+  theme:string
 
   //logform:any
   public logform = new FormGroup({
@@ -90,14 +92,15 @@ export class LoginPage implements OnInit {
             if (val == null || val == "") {
             
               this.auth.getSites()
-
-                .then(result => {
+                //.subscribe(result => {
+                 //for deployment
+                 .then(result => {
                   console.log(" sites upload ")
                   // for mock
                   // this.sites=result[0].sites
                   this.sites = result.sites
                   this.sites = this.sites.sort(function (a, b) {
-                    return a.name.localeCompare(b.name)
+                    return a.language.localeCompare(b.language)
                   })
                   this.db.set('sites', JSON.stringify(this.sites))
 
@@ -109,7 +112,7 @@ export class LoginPage implements OnInit {
              
               this.sites = JSON.parse(val)
               this.sites = this.sites.sort(function (a, b) {
-                return a.name.localeCompare(b.name)
+                return a.language.localeCompare(b.language)
               })
             }
           })
@@ -137,7 +140,10 @@ export class LoginPage implements OnInit {
           text: 'Send Username',
           handler: data => {
             console.log('to send email Saved clicked');
-            this.auth.forgotUserName(data).then((isValid) => {
+           // this.auth.forgotUserName(data).subscribe((isValid:any) => {
+               //for deployment
+               this.auth.forgotUserName(data).then((isValid:any) => {
+           
               if (isValid.valid) {
                 this.utils.presentToast('Please check your email for your Username.', 2000)
               } else {
@@ -179,7 +185,10 @@ export class LoginPage implements OnInit {
         {
           text: 'Send Reset Password',
           handler: data => {
-            this.auth.forgotPassword(data).then((isValid) => {
+            //this.auth.forgotPassword(data).subscribe((isValid:any) => {
+            //for deployment 
+            this.auth.forgotPassword(data).then((isValid:any) => {
+           
               if (isValid.token == "PASSWORD_EMAIL_SENT") {
                 this.utils.presentToast('Please check your email to reset Password.', 2000)
               } else {
@@ -226,19 +235,19 @@ export class LoginPage implements OnInit {
 
     actionSheet.present();
   }
-
-
+ 
   login() {
     this.auth.loginMD5(this.logform.value)
 
       // this.auth.loginObs(this.logform.value)
-
+      // .subscribe(result => {
+      // for deployment  
       .then(result => {
         if (result === true) {
-          console.log('login success' + result)
-          this.url = this.logform.value.site.name
+
+          this.url = this.logform.value.site.language
           //let siteName=this.url.split("https://np.ll.mit.edu/npfClassroom",2)
-          this.db.get(this.logform.value.site.name)
+          this.db.get(this.logform.value.site.language)
             .then((val) => {
               // this.auth.authenticated(true)
               if (val == null) {
@@ -247,10 +256,13 @@ export class LoginPage implements OnInit {
                 //this.language.writeLocal('loginValues',this.logform.value);
                 this.platform.ready().then(() => {
                   this.db.set("rtl", this.logform.value.site.rtl)
-                  this.db.set('url', this.logform.value.site.url)
+                  //this.db.set('url', this.logform.value.site.url)
+                  this.db.set("url", "https://netprof.ll.mit.edu/netprof")
                   this.db.set('username', this.logform.value.username);
                   this.db.set("latestSite", this.logform.value.site)
-                  this.db.set("latestSiteName", this.logform.value.site.name)
+                  this.db.set("latestSiteName", this.logform.value.site.language)
+                  console.log("rtl " + this.logform.value.site.rtl)
+                  localStorage.setItem("cc",this.logform.value.site.countrycode)
                 })
 
                 this.nav.push(MenuItemsPage)
@@ -267,9 +279,9 @@ export class LoginPage implements OnInit {
           console.log('failed error=0 still allow to access')
           if (err.status == 0) {
 
-            this.url = this.logform.value.site.name
+            this.url = this.logform.value.site.language
             //let siteName=this.url.split("https://np.ll.mit.edu/npfClassroom",2)
-            this.db.get(this.logform.value.site.name)
+            this.db.get(this.logform.value.site.language)
               .then((val) => {
                 // this.auth.authenticated(true)
                 if (val == null) {
@@ -278,10 +290,12 @@ export class LoginPage implements OnInit {
                   //this.language.writeLocal('loginValues',this.logform.value);
                   this.platform.ready().then(() => {
                     this.db.set("rtl", this.logform.value.site.rtl)
-                    this.db.set('url', this.logform.value.site.url)
+                   // this.db.set('url', this.logform.value.site.url)
+                   this.db.set("url", "https://netprof.ll.mit.edu/netprof")
                     this.db.set('username', this.logform.value.username);
                     this.db.set("latestSite", this.logform.value.site)
-                    this.db.set("latestSiteName", this.logform.value.site.name)
+                    this.db.set("latestSiteName", this.logform.value.site.language)
+                    localStorage.setItem("cc",this.logform.value.site.countrycode)
                   })
                   this.nav.push(MenuItemsPage)
                 }
@@ -304,7 +318,9 @@ export class LoginPage implements OnInit {
     loading.present();
     // this.url = this.logform.value.url
     //   let siteName=this.url.split("https://np.ll.mit.edu/",2)
-    this.auth.load(this.logform.value.site).then(
+   //this.auth.load(this.logform.value.site).subscribe(
+   //for deployment 
+   this.auth.load(this.logform.value.site).then(
 
       // using proxy  
       //this.language.load(siteName[1]).subscribe(
@@ -317,10 +333,12 @@ export class LoginPage implements OnInit {
         this.platform.ready().then(() => {
           //this.db.set(this.logform.value.site.name, JSON.stringify(res.content))
           this.db.set("latestSite", this.logform.value.site)
-          this.db.set("latestSiteName", this.logform.value.site.name)
-          this.db.set('url', this.logform.value.site.url).then(() => console.log("set Url"))
+          this.db.set("latestSiteName", this.logform.value.site.language)
+          //this.db.set('url', this.logform.value.site.url).then(() => console.log("set Url"))
+          this.db.set("url", "https://netprof.ll.mit.edu/netprof")
           this.db.set('username', this.logform.value.username);
           this.db.set("rtl", this.logform.value.site.rtl)
+          localStorage.setItem("cc",this.logform.value.site.countrycode)
         })
         //this.language.writeLocal('loginValues',this.logform.value);
         // navigate to the next page with parameters

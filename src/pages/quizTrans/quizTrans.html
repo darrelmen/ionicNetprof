@@ -30,7 +30,7 @@
 					</ion-select>
 				</ion-item>
 			</ion-list>
-			<button ion-button color="primary" (click)="startSlide()">Start!</button>
+			<button ion-button color={{theme}} (click)="startSlide()">Start!</button>
 		</ion-card>
 	</ion-slide>
 
@@ -64,8 +64,8 @@
 		<button ion-button color="secondary" (click)="playWave()" *ngIf="transOpt=='scribeVocab' && isNotPlay">
 			<ion-icon name="play">Listen</ion-icon>
 		</button>
-		<button ion-button color="secondary" (click)="pauseWave()" *ngIf="transOpt=='scribeVocab' && !isNotPlay">
-				<ion-icon name="pause"></ion-icon>
+		<button ion-button color="dark" (click)="pauseWave()" *ngIf="transOpt=='scribeVocab' && !isNotPlay">
+				<ion-icon name="pause"></ion-icon>Pause
 			</button>
 		<button ion-button (click)="checkFlashCard(inputValue,item.ct,i)" *ngIf="transOpt=='scribeContext'">Check</button>
 		<button ion-button (click)="checkFlashCard(inputValue,item.fl,i)" *ngIf="transOpt=='scribeVocab'">Check</button>
@@ -77,7 +77,7 @@
 	<ion-slide>
 		<h2>Final Score: {{score}}</h2>
 
-		<button (click)="restartQuiz()" ion-button full color="primary">Start Again</button>
+		<button (click)="restartQuiz()" ion-button full color={{theme}}>Start Again</button>
 
 	</ion-slide>
 

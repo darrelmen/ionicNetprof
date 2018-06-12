@@ -33,7 +33,9 @@ export class DropQuizPage {
         this.testItems = params.testItems
         this.question = this.questions[0]
         this.siteName = params.siteName
+        this.theme=localStorage.getItem("theme")      
     }
+    theme:string
 
     ionViewDidLoad() {
         this.dragdrop()

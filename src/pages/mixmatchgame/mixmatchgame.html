@@ -36,7 +36,7 @@
            <h2 style="color: green;" no-padding text-center  id="score"></h2>
             <h2 no-padding text-center id="timer"></h2>
         </div>
-        <button padding *ngIf="interVl==0" (click)="restartGame()" ion-button full color="primary">Start Again</button>
+        <button padding *ngIf="interVl==0" (click)="restartGame()" ion-button full color={{theme}}>Start Again</button>
     </ion-card>
 
 </ion-footer>

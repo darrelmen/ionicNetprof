@@ -14,39 +14,52 @@
       </ion-avatar>
     </ion-col>
   </ion-row>   -->
-  <ion-navbar no-border-bottom no-padding color="primary" hideBackButton="true">
+  <ion-navbar no-border-bottom no-padding color={{theme}} hideBackButton="true">
 
-    <button no-padding left ion-button menuToggle (click)="filterItems()" *ngIf="opts=='search'">
-      <ion-icon name="menu"></ion-icon>
-    </button>
     <ion-row *ngIf="opts!='search'">
+      <img style="padding-left: 7px;" src="assets/img/cc/{{flag}}.png" alt={{siteName}} width=48 height=42 tappable (click)="getLanguages()">
       <ion-title text-center (click)="showSearch()">{{siteName}}</ion-title>
-      <ion-buttons end>
+      <ion-buttons style="padding-top: 8px" end>
         <button no-padding icon-right dark icon-only ion-button clear (click)="showOthersPopover($event)">
           <ion-icon name="cog"></ion-icon>
         </button>
       </ion-buttons>
     </ion-row>
     <ion-row *ngIf="opts=='search'">
-      <ion-col col-8>
-        <ion-searchbar color="light" [(ngModel)]="searchTerm" [formControl]="searchControl" (ionInput)="onSearchInput()" (ionClear)="onCancel()"
-          (ionCancel)="onCancel()" [showCancelButton]="shouldShowCancel" placeholder="Search Item">
-        </ion-searchbar>
+      <ion-col no-padding col-2>
+        <button no-padding left ion-button clear icon-only (click)="getLanguages()">
+          <img style="padding-left: 1px;" src="assets/img/cc/{{flag}}.png" alt={{siteName}} width=42 height=42>
+        </button>
+        <button style="padding-left: 1px; padding-right:0px" icon-only no-padding left ion-button menuToggle (click)="filterItems()">
+          <ion-icon name="menu"></ion-icon>
+        </button>
       </ion-col>
-      <ion-col col-4>
-        <ion-buttons end style="padding-top: 8px;">
+      <ion-col no-padding col-6>
+         <ion-searchbar style="padding-top: 8px;padding-left: 0px;" color="light" [(ngModel)]="searchTerm" [formControl]="searchControl"
+            (ionInput)="onSearchInput()" (ionClear)="onCancel()" (ionCancel)="onCancel()" [showCancelButton]="shouldShowCancel"
+            placeholder="Search Item">
+          </ion-searchbar> 
+          <ion-title *ngIf="!isViewAll">{{ lessonTitles }}</ion-title> 
+      </ion-col>
+      <ion-col col-4 style="padding-right: 0px;">
+        <ion-buttons end style="padding-top: 8px;padding-left: 0px;">
+          <button style="padding-left: 0px;" ion-button icon-only clear (click)="getSearchSpeech()" *ngIf="!isSpeak">
+            <ion-icon name="mic"></ion-icon>
+          </button>
+          <button style="padding-left: 0px;" ion-button icon-only color="danger" clear *ngIf="platform.is('ios')  && isSpeak" (click)="stopSpeech()">
+            <ion-icon name="radio-button-on"></ion-icon>
+          </button>
           <button ion-button icon-only large clear (click)="showSortByPopover($event,sortOrder)">
             <ion-icon name="arrow-round-up" *ngIf="sortOrder=='A'"></ion-icon>
             <ion-icon name="arrow-round-down" *ngIf="sortOrder=='D'"></ion-icon>
           </button>
-          <button dark icon-only large ion-button clear (click)="showOthersPopover($event)">
+          <button style="padding-left: 2px;" dark icon-only large ion-button clear (click)="showOthersPopover($event)">
             <ion-icon name="cog"></ion-icon>
           </button>
         </ion-buttons>
       </ion-col>
     </ion-row>
-
-  </ion-navbar>
+ </ion-navbar>
   <ion-navbar no-padding color="light" hideBackButton="true">
     <ion-segment color="dark" top [(ngModel)]="opts" (ionChange)="segmentChanged($event)">
       <ion-segment-button value="search">
@@ -79,6 +92,8 @@
     <span class="badge" style="color: red;">&nbsp;&nbsp;&nbsp;&nbsp;{{sortTitle}}</span>
     <span class="badge" tappable wrap (click)="showAll()" style="color:blue;" *ngIf="!isViewAll">
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;View All</span>
+    <span class="badge" tappable wrap (click)="clearPlayList()" style="color:red;" *ngIf="isPlayList">
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Clear PlayList</span>
   </div>
 
 </ion-header>
@@ -86,7 +101,7 @@
 <div padding class="animate-in-primary" id="flashMsg" text-wrap *ngIf="opts=='flash'"></div>
 
 <ion-content no-padding>
-
+  <audio [src]="" #audio></audio>
   <div *ngIf="searching && opts=='search'" class="spinner-container">
     <ion-spinner></ion-spinner>
   </div>
@@ -122,7 +137,7 @@
         <ion-checkbox (click)="selectList($event,item,indices?.start, indices?.end)" [checked]="item.isAddPlaylist"></ion-checkbox>
 
         <span tappable (click)="man(item,idx+indices?.start,$event)">
-          <font color="green">{{ item.fl}}</font>
+          <font color="green"> &nbsp;&nbsp;{{ item.fl}}</font>
         </span>
         &nbsp;&nbsp;
         <span tappable (click)="playEnglish(item)"> {{'(' + item.en +')'}} </span>
@@ -135,84 +150,99 @@
       <p dir={{rtl}} id={{idx+indices?.start}} tappable wrap (click)="context(item,idx+indices?.start,$event)">
         <font color="blue">{{item.ct}}</font>
       </p>
-      <ion-row>
-        <ion-col col-2>
-          <button ion-button block color="primary" (click)="changeSpeed(item,idx+indices?.start,$event)" *ngIf="!item.selectedSlow">
-            <ion-icon name="turtle-press"></ion-icon>
-          </button>
-          <button ion-button block color="light" (click)="changeSpeed(item,idx+indices?.start,$event)" *ngIf="item.selectedSlow">
-            <ion-icon name="turtle"></ion-icon>
-            <!-- for outline customizable
+
+      <ion-list>
+        <ion-item-sliding>
+          <ion-item>
+            <ion-row>
+
+              <ion-col col-2>
+                <button ion-button block color={{theme}} (click)="changeSpeed(item,idx+indices?.start,$event)" *ngIf="!item.selectedSlow">
+                  <ion-icon name="turtle-press"></ion-icon>
+                </button>
+                <button ion-button block color="light" (click)="changeSpeed(item,idx+indices?.start,$event)" *ngIf="item.selectedSlow">
+                  <ion-icon name="turtle"></ion-icon>
+                  <!-- for outline customizable
                         <ion-icon  name="turtle-press" ></ion-icon>-->
-          </button>
-        </ion-col>
-        <ion-col col-2>
-          <button ion-button block color="secondary" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="!item.selectedCtr">
-            <ion-icon name="text"></ion-icon>
-          </button>
-          <button ion-button block color="light" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="item.selectedCtr">
-            <ion-icon name="text"></ion-icon>
-          </button>
-        </ion-col>
-        <ion-col col-2>
-          <button ion-button block (click)="man(item,idx+indices?.start,$event)">
-            <!--  <audio [src]="" (ended)="playerEnded(player)" (timeupdate)="setProgress()" #player></audio> -->
-            <ion-icon name="man"></ion-icon>
-          </button>
-        </ion-col>
-        <ion-col col-2>
-          <button ion-button block style="background-color: rgb(192, 64, 186);" (click)="woman(item,idx+indices?.start,$event)">
-            <!--  <audio [src]="" (ended)="playerEnded(player)" (timeupdate)="setProgress()" #player></audio> -->
-            <ion-icon name="woman"></ion-icon>
-          </button>
-        </ion-col>
-        <ion-col col-2>
-          <button ion-button block color="danger" (click)="presentRecord(item)">
-            <ion-icon name="mic"></ion-icon>
-          </button>
-        </ion-col>
-        <ion-col col-2 *ngIf="item.s>0 && isViewAll == false">
-          <button *ngIf="item.h[item.h.length-1]==='Y'" ion-button outline block color="secondary" (click)="playRecord(item,idx + indices?.start)">
-            {{(item.scores[item.scores.length-1].valueOf() * 100).toFixed(0)}}&nbsp;
-            <ion-icon name="checkmark-circle"></ion-icon>
-          </button>
-          <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()>0" ion-button outline block color="danger"
-            (click)="playRecord(item,idx + indices?.start)">
-            {{(item.scores[item.scores.length-1].valueOf() * 100).toFixed(0)}}&nbsp;
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
-          <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()==-1" ion-button outline block
-            color="danger" (click)="playRecord(item,idx + indices?.start)">
-            0&nbsp;
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
+                </button>
+              </ion-col>
+              <ion-col col-2>
+                <button ion-button block color="secondary" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="!item.selectedCtr">
+                  <ion-icon name="quote"></ion-icon>
+                </button>
+                <button ion-button block color="light" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="item.selectedCtr">
+                  <ion-icon name="quote"></ion-icon>
+                </button>
+              </ion-col>
 
-        </ion-col>
-        <ion-col col-2 *ngIf="item.s==0 && item.scoreJson=='' && isViewAll == false">
-          <button ion-button block color="light">
-            <ion-icon name="mic-off"></ion-icon>
-          </button>
-        </ion-col>
-        <ion-col col-2 *ngIf="item.s==0 && item.scoreJson!='' && isViewAll == false">
-          <button ion-button outline block color="danger">
-            {{item.s}}&nbsp;
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
-        </ion-col>
+              <ion-col col-2>
+                <button ion-button block outline color={{theme}} (click)="man(item,idx+indices?.start,$event)">
+                  <ion-icon name="male"></ion-icon>
+                </button>
+              </ion-col>
+              <ion-col col-2>
+                <button ion-button block outline (click)="woman(item,idx+indices?.start,$event)">
+                  <ion-icon name="female"></ion-icon>
+                </button>
+              </ion-col>
+              <ion-col col-2>
+                <button ion-button block color="danger" (click)="goRecord(item)">
+                  <ion-icon name="mic"></ion-icon>
+                </button>
+              </ion-col>
+              <ion-col col-2 *ngIf="item.s>0 && isViewAll == false">
+                <button *ngIf="item.h[item.h.length-1]==='Y'" ion-button outline block color="secondary" (click)="playRecord(item,idx + indices?.start)">
+                  {{(item.scores[item.scores.length-1].valueOf() * 100).toFixed(0)}}&nbsp;
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                </button>
+                <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()>0" ion-button outline block color="danger"
+                  (click)="playRecord(item,idx + indices?.start)">
+                  {{(item.scores[item.scores.length-1].valueOf() * 100).toFixed(0)}}&nbsp;
+                  <ion-icon name="close-circle"></ion-icon>
+                </button>
+                <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()==-1" ion-button outline block
+                  color="danger" (click)="playRecord(item,idx + indices?.start)">
+                  0&nbsp;
+                  <ion-icon name="close-circle"></ion-icon>
+                </button>
 
-        <ion-col col-2 *ngIf="item.s>0 && isViewAll">
-          <button *ngIf="item.h[item.h.length-1]==='Y'" ion-button outline block color="secondary" (click)="playRecord(item,idx + indices?.start)">
-            {{item.s}}&nbsp;
-            <ion-icon name="checkmark-circle"></ion-icon>
-          </button>
-          <button *ngIf="item.h[item.h.length-1]==='N'" ion-button outline block color="danger" (click)="playRecord(item,idx + indices?.start)">
-            {{item.s}}&nbsp;&nbsp;
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
+              </ion-col>
+              <ion-col col-2 *ngIf="item.s==0 && item.scoreJson=='' && isViewAll == false">
+                <button ion-button block outline color="dark">
+                  <ion-icon name="mic-off"></ion-icon>
+                </button>
+              </ion-col>
+              <ion-col col-2 *ngIf="item.s==0 && item.scoreJson!='' && isViewAll == false">
+                <button ion-button outline block color="danger">
+                  {{item.s}}&nbsp;
+                  <ion-icon name="close-circle"></ion-icon>
+                </button>
+              </ion-col>
 
-        </ion-col>
+              <ion-col col-2 *ngIf="item.s>0 && isViewAll">
+                <button *ngIf="item.h[item.h.length-1]==='Y'" ion-button outline block color="secondary" (click)="playRecord(item,idx + indices?.start)">
+                  {{item.s}}&nbsp;
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                </button>
+                <button *ngIf="item.h[item.h.length-1]==='N'" ion-button outline block color="danger" (click)="playRecord(item,idx + indices?.start)">
+                  {{item.s}}&nbsp;&nbsp;
+                  <ion-icon name="close-circle"></ion-icon>
+                </button>
 
-        <!-- <ion-col width-20>
+              </ion-col>
+            </ion-row>
+            <ion-row no-padding style="border-top: 1px solid  gray;" *ngIf="item.s>0 && item.scores.length>0">
+              <ion-col col-2 no-padding *ngFor="let score of item.scores; let i=index">
+                <button no-padding *ngIf="item.h[i]=='Y'" ion-button small clear color="secondary" (click)="playRecord(item,idx + indices?.start)">
+                  <ion-icon name="checkmark-circle"></ion-icon> {{(score *100).toFixed(0)}}
+                </button>
+                <button no-padding *ngIf="item.h[i]=='N'" ion-button small clear color="danger" (click)="playRecord(item,idx + indices?.start)">
+                  <ion-icon name="close-circle"></ion-icon> {{(score *100).toFixed(0)}}
+                </button>
+              </ion-col>
+            </ion-row>
+
+            <!-- <ion-col width-20>
                     <button ion-button block color="danger" (click)="record(item)" *ngIf="!item.isRecord">
                       <ion-icon  name="mic"></ion-icon>
                     </button>
@@ -220,8 +250,25 @@
                       <ion-icon  name="square"></ion-icon>
                     </button>
                   </ion-col> -->
+          </ion-item>
+          <ion-item-options side="right">
+            <button ion-button small color={{theme}} (click)="selectList($event,item,indices?.start, indices?.end)" *ngIf="!item.isAddPlaylist">
+              <ion-icon name="add-circle"></ion-icon>
+              PlayList
+            </button>
+            <button ion-button small color={{theme}} (click)="selectList($event,item,indices?.start, indices?.end)" *ngIf="item.isAddPlaylist">
+              <ion-icon name="close-circle"></ion-icon>
+              PlayList
+            </button>
 
-      </ion-row>
+            <button ion-button small color="secondary">
+              <ion-icon name="text"></ion-icon>
+              Add English
+            </button>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+
     </ion-card>
   </virtual-list>
   <div *ngIf="opts=='quizdrop'">
@@ -239,43 +286,46 @@
   <div *ngIf="opts=='mixmatch'">
     <page-mixematch></page-mixematch>
   </div>
-
+  <!-- show only when creating a tempfile
   <ion-fab *ngIf="tempPlaylists.length>0 && opts=='search'" padding top right edge>
     <button ion-fab color="danger" (click)="addPlayList()">+Playlist
     </button>
+    </ion-fab>
+-->
 
-  </ion-fab>
 </ion-content>
 <!-- show only when lessons are selected-->
 <ion-footer style="background-color:rgb(166, 204, 241);" *ngIf="opts=='search'  && !isViewAll">
   <ion-row no-padding>
-  <ion-col col-2>
-    <button ion-button small block color="secondary" (click)="getSearchRecordings('correct')">
-      <ion-icon name="checkmark-circle">&nbsp;{{lastCorrect}}</ion-icon>
-    </button>
-  </ion-col>
-  <ion-col  col-2>
-    <button ion-button small block color="danger" (click)="getSearchRecordings('inCorrect')">
-      <ion-icon name="close-circle">&nbsp;{{lastIncorrect}}</ion-icon>
-    </button>
-  </ion-col>
-  <ion-col  col-3>
-    <button ion-button small block color="light" (click)="getSearchRecordings('noRecord')">
-      <ion-icon name="mic-off">&nbsp;{{noRecording}}</ion-icon>
-    </button>
-  </ion-col>
-  <ion-col  col-3>
-    <button ion-button small block color="primary" (click)="getSearchRecordings('all')">
-      <ion-icon name="refresh">&nbsp;{{lessonItems.length}}</ion-icon>
-    </button>
-  </ion-col>
-  <ion-col  col-2>
-    <button  ion-button small block color="dark" (click)="autoPlayModal()">
-      <ion-icon name="play"></ion-icon>&nbsp;Auto
-    </button>
-  </ion-col>
-</ion-row>
+    <ion-col col-2>
+      <button ion-button small block color="secondary" (click)="getSearchRecordings('correct')">
+        <ion-icon name="checkmark-circle"></ion-icon>&nbsp;{{lastCorrect}}
+      </button>
+    </ion-col>
+    <ion-col col-2>
+      <button ion-button small block color="danger" (click)="getSearchRecordings('inCorrect')">
+        <ion-icon name="close-circle"></ion-icon>&nbsp;{{lastIncorrect}}
+      </button>
+    </ion-col>
+    <ion-col col-3>
+      <button ion-button small block color="light" (click)="getSearchRecordings('noRecord')">
+        <ion-icon name="mic-off"></ion-icon>&nbsp;{{noRecording}}
+      </button>
+    </ion-col>
+    <ion-col col-3>
+      <button ion-button small block color={{theme}} (click)="getSearchRecordings('all')">
+        <ion-icon name="refresh"></ion-icon>&nbsp;{{lessonItems.length}}
+      </button>
+    </ion-col>
+    <ion-col col-2>
+      <button ion-button small block color="dark" (click)="autoPlayModal()">
+        <ion-icon name="play"></ion-icon>&nbsp;Auto
+      </button>
+    </ion-col>
+  </ion-row>
 </ion-footer>
+
+
 
 
 <!--<ion-footer *ngIf="tempPlaylists.length==0 && opts=='search'">

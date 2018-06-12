@@ -1,36 +1,43 @@
 <ion-split-pane>
   <ion-menu [content]="mycontent">
-    <ion-header padding style="background-color:#488aff;">
-      <ion-row>
-        <ion-title text-center color="light" tappable (click)="getSearchItems()">
-          <strong>{{siteName}}</strong>
-        </ion-title>
-      </ion-row>
-      <ion-row>
-        <ion-title text-center color="danger" tappable (tap)="getSearchItems()">
-          <strong>{{title}}</strong>
-        </ion-title>
-      </ion-row>
+    <ion-header no-padding >
+      <ion-navbar no-padding hideBackButton="true" color={{theme}}>
+        <h5  menuClose no-padding text-center style="color:floralwhite;font-size:20px;" tappable >
+          {{siteName}}
+        </h5>
+        <h6  menuClose no-padding text-center color="danger" tappable >
+          {{title}}
+        </h6>
+    </ion-navbar>
     </ion-header>
 
     <ion-content>
-        <ion-label text-center>
-            <strong>
-              <font color="blue">{{title}}</font>
-            </strong>
-          </ion-label>
-
-      <ion-list *ngIf="sublessons.length!=0" style="background-color: gray">
-        <button menuClose ion-item *ngFor="let item of lessons" (click)="getSearchItems(item)">
-          {{item.lesson.name}} - {{item.name}}
-          <font color="green">({{item.count}} items)</font>
-        </button>
-      </ion-list>
-      <ion-list *ngIf="sublessons.length==0">
-        <button menuClose ion-item *ngFor="let item of lessons" (click)="getSearchItems(item)">
-          {{item.type}} - {{item.name}}
-          <font color="green">({{item.count}} items)</font>
-        </button>
+      <ion-list >
+        <ion-list-header>
+          {{title}}
+        </ion-list-header>
+        <ion-item menuClose [class.activeHighlight]="checkActivePage('playList')" (click)="filterPlayList()">
+          <ion-icon color={{theme}} name="musical-notes"> </ion-icon>&nbsp;&nbsp;- Play List
+        </ion-item>
+        <div *ngIf="!isSublesson">
+          <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" *ngFor="let menu of lessonMenu ; let i=index" (click)="getSearchMenu(menu)">
+            {{menu.type}} - {{menu.name}}
+            <font color="green">({{menu.count}} items)</font>
+          </ion-item>
+        </div>
+        <div *ngIf="isSublesson">
+          <ion-item *ngFor="let menu of lessonMenu ; let i=index" (click)="toggleLevel1('idx'+i,i)" [class.activeHighlight]="checkMainPage(menu)">
+            {{menu.type}} - {{menu.name}}
+            <font color="green">({{menu.count}} {{menu.sublesson[0].type.toLowerCase()}}s)</font>
+            <ion-list *ngIf="isLevel1Shown('idx'+i) ">
+              <ion-item menuClose detail-none [class.activeHighlight]="checkActivePage(submenu)" *ngFor="let submenu of menu.sublesson"
+                text-wrap (click)="getSearchMenu(submenu)">
+                {{submenu.type}} - {{submenu.name}}
+                <font color="green">({{submenu.count}} items)</font>
+              </ion-item>
+            </ion-list>
+          </ion-item>
+        </div>
       </ion-list>
 
     </ion-content>

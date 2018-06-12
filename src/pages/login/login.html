@@ -5,17 +5,11 @@
   Ionic pages and navigation.
 -->
 <ion-header padding >
-
-  <ion-navbar *navbar>
-    <ion-title>Login</ion-title>
-
-  </ion-navbar>
 </ion-header>
-<ion-content class="login" *ngIf="!auth.authenticated()">
-
+<ion-content>
   <div padding >
     
-    <ion-segment style="background-color:#001a33;" [(ngModel)]="authType" class="headerLogo">
+    <ion-segment color={{theme}} style="background-color:#001a33;" [(ngModel)]="authType" class="headerLogo">
       <ion-avatar item-left>
       <img src="assets/img/Icon-40.png">
     </ion-avatar>
@@ -50,22 +44,22 @@
       <ion-item>
         <ion-label ><ion-icon name="globe" padding-right></ion-icon>Select a Language</ion-label>
         <ion-select formControlName="site" [(ngModel)]="selected_site">
-           <ion-option *ngFor="let site of sites" [value]='site'>{{site.name}}
-             </ion-option>
+           <ion-option *ngFor="let site of sites" [value]='site'>{{site.language}}  {{site.language.toLowerCase()==site.name.toLowerCase() ? '' : '- ' + site.name}} 
+           </ion-option>
         </ion-select>
       </ion-item>
 
       <div padding>
-        <button ion-button block type="submit" [disabled]="!f.form.valid">Login</button>
+        <button ion-button block color={{theme}} type="submit" [disabled]="!f.form.valid">Login</button>
       </div>
 
     </form>
     <div *ngSwitchCase="'login'">
       <ion-item>
-        <button ion-button clear value="forgotPass" (click)="showForgotPassPrompt()">
+        <button ion-button color={{theme}} clear value="forgotPass" (click)="showForgotPassPrompt()">
               Forgot Password?  
             </button>
-        <button ion-button clear item-right value="forgotUser" (click)="showForgotUserPrompt()">
+        <button ion-button color={{theme}} clear item-right value="forgotUser" (click)="showForgotUserPrompt()">
               Forgot Username?
             </button>
 
@@ -90,7 +84,7 @@
         </ion-select>
       </ion-item>
       <div padding>
-        <button ion-button block type="submit" [disabled]="!fs.form.valid">Signup</button>
+        <button ion-button block color={{theme}} type="submit" [disabled]="!fs.form.valid">Signup</button>
       </div>
 
     </form>

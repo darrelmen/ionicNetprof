@@ -1,4 +1,5 @@
 <ion-content justify-content-center>
+        <audio [src]="" #audio></audio>
 <ion-card justify-content-center color="light">
   <ion-slides no-margin #mySlider (ionSlideDidChange)="playSlide()" (ionSlideReachEnd)="getNextItem()">
     <ion-slide *ngFor="let item of items ;  let id=index">
@@ -10,10 +11,11 @@
 
         <h2 style="font-family:arial;" padding>
           <span>
-            <font color="primary" size=20px;>{{ item.fl}}</font>
+            <font color="green" size="7">{{ item.fl}}</font>
           </span>  
         </h2>
-        <span> {{'(' + item.en +')'}} </span>
+        <h2><span><font color="blue" size="5"> {{'(' + item.en +')'}} </font></span></h2>
+        <h2><span><font  size="4">{{ item.ct}}</font></span></h2>
       </ion-card-content>
     </ion-slide>
   </ion-slides>

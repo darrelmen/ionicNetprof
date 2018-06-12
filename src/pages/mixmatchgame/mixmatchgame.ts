@@ -32,8 +32,9 @@ export class MixMatchGamePage {
         this.testItems = params.testItems
         this.siteName = params.siteName
         this.itemsRandom = this.utils.randomizeItems(params.items)
-        
+        this.theme=localStorage.getItem("theme")      
     }
+    theme:string
 
     ionViewDidLoad() {
         this.dragdrop()

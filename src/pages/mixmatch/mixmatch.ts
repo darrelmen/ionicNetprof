@@ -13,7 +13,6 @@ import { Question } from '../../model/question';
 import { Storage } from '@ionic/storage';
 import { CommonUtils } from '../../utils/common-utils';
 import {MixMatchGamePage} from '../../pages/mixmatchgame/mixmatchgame'
-
 @Component({
     selector: 'page-mixematch',
     templateUrl: 'mixmatch.html',
@@ -38,12 +37,9 @@ export class MixMatchPage {
                 this.siteName = site
             })
         })
-
+        this.theme=localStorage.getItem("theme")      
     }
-
-    ionViewCanEnter() {
-       }
-
+   theme:string
 
      
     startSlide() {

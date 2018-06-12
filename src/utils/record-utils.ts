@@ -1,11 +1,12 @@
-import { LoadingController,  Platform, NavParams, normalizeURL } from 'ionic-angular'
-import { Injectable } from '@angular/core'
+import { LoadingController, Platform, NavParams, normalizeURL } from 'ionic-angular'
+import { Injectable, ViewChild } from '@angular/core'
 import { CommonUtils } from './common-utils'
 import { Media, MediaObject } from '@ionic-native/media'
 import { File, FileEntry } from '@ionic-native/file';
 import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
 import { Storage } from '@ionic/storage';
+import { HTTP } from '@ionic-native/http'
 
 declare var cordova: any;
 
@@ -22,7 +23,9 @@ export class RecordUtils {
     public file: File,
     public txfr: FileTransfer,
     private tts: TextToSpeech,
-    public db: Storage
+    public db: Storage,
+    public httpNative: HTTP
+
 
   ) {
 
@@ -44,121 +47,195 @@ export class RecordUtils {
   newFile: MediaObject
   nav: NavParams
 
+  downPlay(url: string, audio?: any) {
+    if (this.platform.is("mobileweb") || this.platform.is("core")) {
+      this.playDesk(url, audio)
+
+    } else {
+      this.playMobile(url)
+      // this.playHTTP(url)
+    }
+  }
+
+  playDesk(url, audio) {
+    try {
+      audio.nativeElement.src = url
+      audio.nativeElement.play()
+    } catch (error) {
+
+    }
+
+  }
 
 
-
-  downPlay(url: string) {
-
-
+  playMobile(url: string, audio?: any) {
     let bestAudioDir = this.checkPlatform()
     this.db.get("latestSiteName").then((str) => {
       this.siteName = str
-    })
-    let audioPath = url.split("https://np.ll.mit.edu/npfClassroom", 2);
-    let fn = bestAudioDir + audioPath[1];
-    let audioName = url.substring(url.lastIndexOf('/') + 1);
-    console.log("siteName url " + bestAudioDir + audioPath[1].substr(0, audioPath[1].length - audioName.length) + audioName)
-    //this.createElement(id,item)
-    //this.platform.ready().then (()=> {
-    //return new Observable<any>((dura) => {
-    //return new Promise((resolve, reject) => {
-    this.file.resolveLocalFilesystemUrl(bestAudioDir + audioPath[1].substr(0, audioPath[1].length - audioName.length) + audioName).then((fe) => {
-      //     console.log('cdvfile URI: ' + entry.toInternalURL())})
-      //     .;
-      //  this.file.checkFile(bestAudioDir + audioPath[1].substr(0, audioPath[1].length - audioName.length), audioName)
-      //    .then((res) => {
-      //      let fe: FileEntry
-      //  console.log("fe url " + fn)
-      //  console.log("fe url " + normalizeURL(fn))
-      // console.log("fe fullpath " + fe.fullPath)
 
-      let sound: MediaObject = null
+      let audioPath = url.split("https://netprof.ll.mit.edu/netprof/", 2);
+      //let fn = bestAudioDir + audioPath[1];
+      let fn = url
+      let audioName = url.substring(url.lastIndexOf('/') + 1);
+      console.log("siteName url " + bestAudioDir)
+      console.log("siteName path " + audioPath[1])
+      console.log("siteName name " + audioName)
+      let dir = audioPath[1].substr(0, audioPath[1].length - audioName.length)
+      console.log("siteName dir " + audioPath[1].substr(0, audioPath[1].length - audioName.length - 1))
+      this.platform.ready().then(() => {
+        this.file.resolveLocalFilesystemUrl(bestAudioDir + this.siteName + "BestAudio/" + audioName).then((fe) => {
 
-      if (this.platform.is('ios')) {
-        sound = this.audio.create(normalizeURL(fn));
-        sound.play({ numberOfLoops: 1 });
-      } else {
-        sound = this.audio.create(normalizeURL(fn));
-        sound.play();
-      }
+          let sound: MediaObject = null
 
-      sound.setVolume(1.0)
-      //this.showHighlights(sound,id,item)
-      sound.onSuccess.subscribe((dur) => {
-        console.log('Use existing file')
-        //if (this.audio.MEDIA_STOPPED) {
-        // to return the the value of the duration 
-        // this is the only way to get the duration on until i can figure how to do a chain promise
-        let duration = (sound.getDuration() * 1000).toFixed(0).toString()
-        localStorage.setItem("duration", duration)
-        sound.release()
-      })
-    }).catch(() => {  // when audio is not saved yet, get from url and download file
-      let ft: FileTransferObject = this.txfr.create();
-      var options = {
-        chunkedMode: false
-      }
-      ft.download(url, bestAudioDir + audioPath[1].substr(0, audioPath[1].length - audioName.length) + audioName, true, options).then(
-        (fe: FileEntry) => {
-          //let uri = new URL(url).toString;
-           console.log("fe nataive " + fe.nativeURL)
-           console.log("fe to url " + fe.toURL())
-           console.log("fe fn norm " + normalizeURL(fn))
-          let song: MediaObject = null
-
-          if (this.platform.is('ios') || this.platform.is('ipad') || this.platform.is("iphone")) {
-            console.log("fe to int url " + fe.toInternalURL())
-            song = this.audio.create((fe.toInternalURL()));
-            song.play({ numberOfLoops: 1 });
+          if (this.platform.is('ios')) {
+            sound = this.audio.create(normalizeURL(bestAudioDir + this.siteName + "BestAudio/" + audioName));
+            sound.play({ numberOfLoops: 1 });
           } else {
-            song = this.audio.create(normalizeURL(fn));
-            //for android needed to release first before play
-
-            song.play();
+            sound = this.audio.create(fe.toURL());
+            sound.play();
           }
-          song.setVolume(1.0)
-          // this.showHighlights(song,id,item)
-          song.onError.subscribe((err) => console.log('Play Error ' + err.toString(1)));
 
-          song.onSuccess.subscribe(() => {
-            console.log('Save new audio file ' + (song.getDuration() * 1000).toFixed())
-
-            let duration = (song.getDuration() * 1000).toFixed(0).toString()
+          sound.setVolume(1.0)
+          //this.showHighlights(sound,id,item)
+          sound.onSuccess.subscribe((dur) => {
+            console.log('Use existing file')
+            //if (this.audio.MEDIA_STOPPED) {
+            // to return the the value of the duration 
+            // this is the only way to get the duration on until i can figure how to do a chain promise
+            let duration = (sound.getDuration() * 1000).toFixed(0).toString()
             localStorage.setItem("duration", duration)
-            song.release()
-          },
-            err => {
-              console.log("Audio Play Error " + JSON.stringify(err));
-            }
-          );
-          // this.showHighlights(this.newFile)
-          //       })
+            sound.release()
+          })
+        }).catch(() => {  // when audio is not saved yet, get from url and download file
+          let ft: FileTransferObject = this.txfr.create();
+          let siteId: string = localStorage.getItem('siteid')
+          console.log("site " + this.siteName)
+          console.log("site " + audioName)
+          this.file.checkDir(bestAudioDir, this.siteName + "BestAudio").then((isExist) => {
+            this.httpNative.setDataSerializer('urlencoded');
+            this.httpNative.acceptAllCerts(true)
+            this.httpNative.downloadFile(url, {}, { "Content-Type": "application/x-www-form-urlencoded", "projid": siteId },
+              bestAudioDir + this.siteName + "BestAudio/" + audioName)
+              .then((data) => {
+                //return string JSON 
+                //    JSON.parse(data.data)
+                let song: MediaObject = null
+
+                if (this.platform.is('ios') || this.platform.is('ipad') || this.platform.is("iphone")) {
+                  // console.log("fe to int url " + fe.toInternalURL())
+                  song = this.audio.create(normalizeURL(bestAudioDir + this.siteName + "BestAudio/" + audioName));
+                  song.play({ numberOfLoops: 1 });
+                } else {
+                  song = this.audio.create(normalizeURL(bestAudioDir + this.siteName + "BestAudio/" + audioName));
+                  //for android needed to release first before play
+
+                  song.play();
+                }
+                song.setVolume(1.0)
+                // this.showHighlights(song,id,item)
+                song.onError.subscribe((err) => console.log('Play Error ' + err.toString(1)));
+
+                song.onSuccess.subscribe(() => {
+                  console.log('Save new audio file ' + (song.getDuration() * 1000).toFixed())
+
+                  let duration = (song.getDuration() * 1000).toFixed(0).toString()
+                  localStorage.setItem("duration", duration)
+                  song.release()
+                },
+                  err => {
+                    console.log("Audio Play Error " + JSON.stringify(err));
+                  }
+                );
+              })
+          }).catch((err) => {
+            console.log("errrrr " + this.siteName)
+            this.file.createDir(bestAudioDir, this.siteName + "BestAudio", false).then((dirEntry) => {
+
+              console.log("dire " + dirEntry.toURL() + audioName)
+              this.httpNative.setDataSerializer('urlencoded');
+              this.httpNative.acceptAllCerts(true)
+              this.httpNative.downloadFile(url, {}, { "Content-Type": "application/x-www-form-urlencoded", "projid": siteId },
+                bestAudioDir + this.siteName + "BestAudio/" + audioName)
+                .then((data) => {
+                  //return string JSON 
+                  //    JSON.parse(data.data)
+                  console.log(" dowb " + data.url)
+                  let song: MediaObject = null
+
+                  if (this.platform.is('ios') || this.platform.is('ipad') || this.platform.is("iphone")) {
+                    // console.log("fe to int url " + fe.toInternalURL())
+                    song = this.audio.create(normalizeURL(bestAudioDir + this.siteName + "BestAudio/" + audioName));
+                    song.play({ numberOfLoops: 1 });
+                  } else {
+                    song = this.audio.create(dirEntry.toURL() + audioName);
+
+                    //for android needed to release first before play
+
+                    song.play();
+                  }
+                  song.setVolume(1.0)
+                  // this.showHighlights(song,id,item)
+                  song.onError.subscribe((err) => console.log('Play Error ' + err.toString(1)));
+
+                  song.onSuccess.subscribe(() => {
+                    console.log('Save new audio file ' + (song.getDuration() * 1000).toFixed())
+
+                    let duration = (song.getDuration() * 1000).toFixed(0).toString()
+                    localStorage.setItem("duration", duration)
+                    song.release()
+                  },
+                    err => {
+                      console.log("Audio Play Error " + JSON.stringify(err));
+                    }
+                  );
+                  // this.showHighlights(this.newFile)
+                  //       })
+
+                }).catch((err) => {
+                  console.log("creare " + err)
+                })
+            })
+
+          })
         })
+      })
     })
   }
 
-  downLoadAudio(url: string){
-     return new Promise((resolve, reject) => {
-    let bestAudioDir = this.checkPlatform()
-    this.db.get("latestSiteName").then((str) => {
-      this.siteName = str
-    })
-    let audioPath = url.split("https://np.ll.mit.edu/npfClassroom", 2);
-    let fn = bestAudioDir + audioPath[1];
-    let audioName = url.substring(url.lastIndexOf('/') + 1);
-    console.log("siteName url " + bestAudioDir + audioPath[1].substr(0, audioPath[1].length - audioName.length) + audioName)
-     this.file.resolveLocalFilesystemUrl(bestAudioDir + audioPath[1].substr(0, audioPath[1].length - audioName.length) + audioName).then((fe) => {
-        resolve(normalizeURL(fn));
-    }).catch(() => {  // when audio is not saved yet, get from url and download file
-      let ft: FileTransferObject = this.txfr.create();
-      var options = {
-        chunkedMode: false
-      }
-      ft.download(url, bestAudioDir + audioPath[1].substr(0, audioPath[1].length - audioName.length) + audioName, true, options).then(
-        (fe: FileEntry) => {
-          resolve(normalizeURL(fn));
+
+  downLoadAudio(url: string) {
+    return new Promise((resolve, reject) => {
+      let bestAudioDir = this.checkPlatform()
+      this.db.get("latestSiteName").then((str) => {
+        this.siteName = str
+        let audioPath = url.split("https://netprof.ll.mit.edu/netprof/", 2);
+        //let fn = bestAudioDir + audioPath[1];
+        let audioName = url.substring(url.lastIndexOf('/') + 1);
+        console.log("siteName url " + bestAudioDir + this.siteName + "BestAudio/" + audioName)
+        let siteId: string = localStorage.getItem('siteid')
+        this.file.resolveLocalFilesystemUrl(bestAudioDir + this.siteName + "BestAudio/" + audioName).then((fe) => {
+
+          if (this.platform.is("ios") || this.platform.is("iphone") || this.platform.is("ipad")) {
+            resolve(normalizeURL(bestAudioDir + this.siteName + "BestAudio/" + audioName));
+          } else {
+            console.log(" audio oldload")
+            resolve(this.file.readAsDataURL(bestAudioDir + this.siteName + "BestAudio/", audioName));
+          }
+        }).catch(() => {  // when audio is not saved yet, get from url and download file
+          
+          this.httpNative.setDataSerializer('urlencoded');
+          this.httpNative.acceptAllCerts(true)
+          this.httpNative.downloadFile(url, {}, { "Content-Type": "application/x-www-form-urlencoded", "projid": siteId },
+            bestAudioDir + this.siteName + "BestAudio/" + audioName)
+            .then((data) => {
+              if (this.platform.is("ios") || this.platform.is("iphone") || this.platform.is("ipad")) {
+                resolve(normalizeURL(bestAudioDir + this.siteName + "BestAudio/" + audioName));
+              } else {
+                console.log(" audio load")
+                resolve(this.file.readAsDataURL(bestAudioDir + this.siteName + "BestAudio/", audioName));
+              }
+            })
         })
-    
       })
     })
   }
@@ -170,6 +247,7 @@ export class RecordUtils {
       return this.file.dataDirectory;
     } else {
       return this.file.externalDataDirectory;
+
     }
   }
   textToSpeech(item) {
@@ -264,7 +342,7 @@ export class RecordUtils {
 
   showHighlights(audio: MediaObject, id, item) {
 
-   // var startPos = 0
+    // var startPos = 0
     //var endPos, curPos, duration
 
     // get current playback position
@@ -293,7 +371,7 @@ export class RecordUtils {
       console.log("spn " + spn)
       // setTimeout(() => {
       //   let pos = audio.getCurrentPosition().then((pos) => {
-       
+
       //     console.log("spn pos " + pos)
 
       //     last && setBackground(last, "white");
@@ -354,10 +432,10 @@ export class RecordUtils {
 
 
   removePuctuations(str: string) {
-   // return str.replace(/(?!\w|).\s/g,"").toLowerCase();
-   return str.replace(/(?!\w|\s)./g, '').toLowerCase()
+    // return str.replace(/(?!\w|).\s/g,"").toLowerCase();
+    return str.replace(/(?!\w|\s)./g, '').toLowerCase()
 
-//return str.replace(/[.,?\/#!$\^\*;:{}=\-_`~()]/g,"").toLowerCase();
+    //return str.replace(/[.,?\/#!$\^\*;:{}=\-_`~()]/g,"").toLowerCase();
   }
 
 

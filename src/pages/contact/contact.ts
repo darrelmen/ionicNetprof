@@ -16,8 +16,9 @@ import { NavController, NavParams } from 'ionic-angular';
 export class ContactPage {
 
   constructor(public navCtrl: NavController, public navParams: NavParams) {
+    this.theme = localStorage.getItem("theme") 
   }
-
+theme:string
   ionViewDidLoad() {
     console.log('ionViewDidLoad ContactPage');
   }

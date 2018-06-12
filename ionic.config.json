@@ -5,8 +5,11 @@
   "proxies": [
     {
       "path": "/",
-      "proxyUrl": "https://np.ll.mit.edu",
-      "rejectUnauthorized": false
+      "proxyUrl": "https://netprof.ll.mit.edu/netprof",
+      "rejectUnauthorized": false,
+      "cookieRewrite":true
+    
+
     }
   ],
   "integrations": {

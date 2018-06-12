@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, EventEmitter } from '@angular/core';
+import { Component, ViewChild, OnInit, EventEmitter,ChangeDetectorRef } from '@angular/core';
 import { FormControl } from '@angular/forms'
 import {
   NavController, reorderArray, AlertController, Platform,
@@ -18,6 +18,7 @@ import { RecordUtils } from '../../utils/record-utils';
 
 import { RecordPage } from '../../pages/record/record';
 import { OthersoverPage } from '../../pages/othersover/othersover';
+import { LanguagePage } from '../../pages/language/language';
 
 import { SortoverPage } from '../../pages/sortover/sortover';
 import { AutoPlayPage } from '../../pages/autoplay/autoplay';
@@ -30,6 +31,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { VirtualListComponent } from 'angular-virtual-list';
 //import { MenuController } from 'ionic-angular';
 
+import { SpeechRecognition } from '@ionic-native/speech-recognition';
 
 //import * as _ from 'lodash';
 /*
@@ -37,7 +39,6 @@ import { VirtualListComponent } from 'angular-virtual-list';
   See http://ionicframework.com/docs/v2/components/#navigation for more info on
   Ionic pages and navigation.
 */
-
 
 @Component({
   templateUrl: 'searchlist.html'
@@ -54,8 +55,8 @@ export class SearchListPage implements OnInit {
   searchQuery: string = ''
   items: Array<Item> = []
   allItems: Array<Item> = []
-  playlists: Array<Item> = []
-  tempPlaylists: Array<Item> = []
+  //playlists: Array<Item> = []
+  //tempPlaylists: Array<Item> = []
 
   //content = this.params.get('contents')
   public content: any;
@@ -64,26 +65,34 @@ export class SearchListPage implements OnInit {
   siteName: any
   siteAudio: any
   activeItem: any = ''
-  lesson: Array<{
+  lessonMenu: Array<{
     type: string
     name: string
     count: number
-  }> = []
-  sublesson: Array<{
-    type: string
-    name: string
-    count: number
-    lesson?: {
+    sublesson?: Array<{
       type: any
       name: any
-    }
+      count: number
+    }>
+    topic?: Array<{
+      type: any
+      name: any
+      count: number
+      subtopic?: Array<{
+        type: any
+        name: any
+        count: number
+      }>
+    }>
   }> = []
+
 
 
   scrollItems: Array<Item> = [];
   filteredList: Array<Item> = [];
   items$ = new BehaviorSubject<Array<Item>>(null);
 
+  @ViewChild("audio") audio;
   @ViewChild(VirtualListComponent)
   private virtualList: VirtualListComponent;
 
@@ -94,12 +103,17 @@ export class SearchListPage implements OnInit {
   sortOrder = 'A'
   opts = "search"
   isViewAll = true
+  isPlayList=false
   indices?: any
+  lessonTitles:string
 
   lastCorrect: any
   lastIncorrect: any
   noRecording: any
   lessonItems = []
+  theme: String = 'primary';
+  flag: string
+
 
   //public newFile: MediaPlugin = null
   public recordPage: RecordPage
@@ -117,9 +131,13 @@ export class SearchListPage implements OnInit {
     public modalCtrl: ModalController,
     public popoverCtrl: PopoverController,
     public viewCtrl: ViewController,
-    public events: Events
+    public events: Events,
+    private cd:ChangeDetectorRef,
+    private speechRecognition: SpeechRecognition
   ) {
 
+    this.theme = localStorage.getItem("theme")
+    if (this.theme == null) this.theme = "primary"
   }
 
   // Apparently, on entering into the page view the sequence is:
@@ -141,51 +159,56 @@ export class SearchListPage implements OnInit {
 
         //to use proxy or not || this.platform.is('android') --add this for android emulator livereload
         if (this.platform.is('core') || this.platform.is('mobileweb') || this.platform.is('android')) {
-          this.siteAudio = this.url.split("https://np.ll.mit.edu", 2);
+          //this.siteAudio = this.url.split("https://np.ll.mit.edu", 2);
+          this.siteAudio = this.url
         } else {
           this.siteAudio = this.url
           console.log("site audio " + this.siteAudio)
         }
         this.db.get("latestSiteName").then(site => {
           this.siteName = site
-
+          this.flag = localStorage.getItem("cc")
           this.db.get(site).then((items) => {
             this.allItems = items
             this.items = items
 
-            this.db.get(this.siteName + 'Playlist').then(str => {
-              if (str != null) { this.playlists = JSON.parse(str) }
-            })
+            // this.db.get(this.siteName + 'Playlist').then(str => {
+            //   if (str != null) { this.playlists = JSON.parse(str) }
+            // })
             this.indices = { "start": 0, "end": 6 }
 
             //this is needed to be able to display initial data
             this.items$.next(this.items)
           })
-          this.db.get(site + "lesson").then((lesson) => this.lesson = lesson)
-          this.db.get(site + "sublesson").then((sublesson) => {
-            this.sublesson = sublesson
+          this.db.get(site + "menu").then((menu) => {
+            this.lessonMenu =menu
             this.filterItems()
           })
-          
+
         });
       })
       this.db.get('username').then(val => this.username = val)
       this.db.get('rtl').then(val => {
-        if (val) this.rtl = 'rtl'
-        //      this.changeLanguage()
+        if (val) {
+          this.rtl = 'rtl'
+        } else {
+          this.rtl = "ltr"
+        }  //      this.changeLanguage()
       })
-      this.db.get(this.siteName + 'Playlist').then(str => {
-        if (str != null) { this.playlists = JSON.parse(str) }
-      })
+      // this.db.get(this.siteName + 'Playlist').then(str => {
+      //   if (str != null) { this.playlists = JSON.parse(str) }
+      // })
     })
     this.searchControl = new FormControl()
   }
+
+  // for the menu of lessons
   filterItems() {
     //this.menuCtrl.open();
-    let params = { lessons: this.lesson, sublessons: this.sublesson, items: this.allItems, siteName: this.siteName + " - (" + this.allItems.length + ")" ,isViewAll:false}
+    this.searchTerm=""
+    let params = { menu:this.lessonMenu, items: this.allItems, siteName: this.siteName + " - (" + this.allItems.length + ")", isViewAll: false }
     this.events.publish('params:callback', params, this.filterCallbackFunction);
   }
-
   //only being called after selecting from the menu
   filterCallbackFunction = (params) => {
     return new Promise((resolve, reject) => {
@@ -197,7 +220,12 @@ export class SearchListPage implements OnInit {
       this.items$.next(this.items)
       //to be used for display of footerfilteri
       this.lessonItems = this.params.items
+      this.opts = 'search'
       this.isViewAll = this.params.isViewAll
+      this.isPlayList=this.params.isPlayList
+      if (this.items.length>0) {
+      this.lessonTitles= this.items[0].lesson+ ' ' + this.items[0].lessonId + '  ' + this.items[0].sublesson + ' ' + this.items[0].sublessonId
+      }
       resolve();
     });
   }
@@ -205,22 +233,30 @@ export class SearchListPage implements OnInit {
     this.virtualList.scrollInto(this.items[1]);
   }
 
-  itemHeader(record, recordIndex, records) {
-    if (recordIndex === 0) {
-      return record.lesson;
-    } else {
-      let recComp = recordIndex + 1
-      if (recComp < records.length) {
-        if (record.lesson != records[recComp].lesson) {
-          if (record.sublesson != records[recComp].sublesson) {
-            return record.sublesson
-          }
-          return record.lesson;
-        }
-      }
-    }
-    return null;
+  clearPlayList(){
+    this.allItems.map(item=>{ item.isAddPlaylist=false})
+    this.items=this.allItems
+    this.isPlayList=false
+    this.isViewAll=true 
+    this.items$.next(this.items)  
   }
+  // itemHeader(record, recordIndex, records) {
+  //   if (recordIndex === 0) {
+  //     return record.lesson;
+  //   } else {
+  //     let recComp = recordIndex + 1
+  //     if (recComp < records.length) {
+  //       if (record.lesson != records[recComp].lesson) {
+  //         if (record.sublesson != records[recComp].sublesson) {
+  //           return record.sublesson
+  //         }
+  //         return record.lesson;
+  //       }
+  //     }
+  //   }
+  //   return null;
+  // }
+
 
   changeLanguage() {
     if (this.rtl) {
@@ -232,20 +268,40 @@ export class SearchListPage implements OnInit {
     }
   }
 
+  callbackLang
   ionViewCanEnter() {
     this.auth.authenticated()
-    
+
   }
 
   ionViewDidLoad() {
-    
+
     this.getSearchItems();
     this.searchControl.valueChanges.debounceTime(700).subscribe(search => {
-      this.searching = false;
+      //this.searching = false;
       this.shouldShowCancel = true
       this.getSearchItems();
     });
+    this.events.subscribe('theme:toggle', (theme) => {
 
+      if (theme == "ionic.theme.default") {
+        localStorage.setItem("theme", 'primary')
+        this.theme = "primary"
+      } else {
+        localStorage.setItem("theme", theme)
+      }
+    });
+    this.speechRecognition.hasPermission()
+      .then((hasPermission: boolean) => {
+
+        if (!hasPermission) {
+          this.speechRecognition.requestPermission()
+            .then(
+              () => console.log('Granted Speech'),
+              () => console.log('Denied')
+            )
+        }
+      });
   }
 
 
@@ -256,15 +312,16 @@ export class SearchListPage implements OnInit {
   }
 
   onSearchInput() {
-    this.searching = true;
+    //this.searching = true;
+    //this.items=this.allItems
+  //  this.items$.next(this.allItems)
+ //  console.log("input searxh")
   }
   // for filtering search
   shouldShowCancel = false
   onCancel() {
     this.shouldShowCancel = false
-    this.searchTerm = ""
-    this.isViewAll = true
-    this.items = this.allItems
+    this.showAll()
   }
 
   showAll() {
@@ -286,9 +343,136 @@ export class SearchListPage implements OnInit {
     this.lastCorrect = 0
     this.lastIncorrect = 0
     this.noRecording = 0
+    this.cd.detectChanges();
     this.lessonItems = this.items
     this.items$.next(this.items);
     this.virtualList.refreshList()
+
+  }
+
+
+  supportedLang =
+    {
+      android: [
+        { code: "ph", desc: "fil-PH" },
+        { code: "br", desc: "pt-BR" },
+        { code: "kr", desc: "ko-KR" },
+        { code: "ru", desc: "ru-RU" },
+        { code: "es", desc: "es-ES" },
+        { code: "us", desc: "en-US" },
+        { code: "jp", desc: "ja-JP" },
+        { code: "fr", desc: "fr-FR" },
+        { code: "eg", desc: "ar-EG" },
+        { code: "ir", desc: "fa-IR" },
+        { code: "de", desc: "de-DE" },
+        { code: "cn", desc: "cmn-Hans-CN" }
+      ],
+      ios: [
+        { code: "br", desc: "pt-PT" },
+        { code: "kr", desc: "ko-KR" },
+        { code: "ru", desc: "ru-RU" },
+        { code: "es", desc: "es-ES" },
+        { code: "us", desc: "en-GB" },
+        { code: "jp", desc: "ja-JP" },
+        { code: "fr", desc: "fr-FR" },
+        { code: "de", desc: "de-DE" }
+      ]
+    }
+
+  isSpeak = false
+  getSearchSpeech() {
+    this.items=this.allItems
+    this.items$.next(this.allItems)
+    let lang = []
+    let speech:string
+    let flagSpeak = localStorage.getItem("spk")
+    if (flagSpeak==null) flagSpeak='us'
+    if (this.platform.is('ios')) {
+      lang = this.supportedLang.ios.filter((obj) => { return obj.code === flagSpeak });
+      
+       if (lang.length == 0) {
+        speech = "en-GB"
+      } else{
+        speech=lang[0].desc
+      }
+    } else {
+      lang = this.supportedLang.android.filter((obj) => { return obj.code === flagSpeak });
+      if (lang.length == 0) {
+        speech = "en-US"
+      } else{
+        speech=lang[0].desc
+      }
+    }
+
+     let options = {
+      language: speech,
+      matches: 5,
+      prompt: "",      // Android only
+      showPopup: true,  // Android only
+      showPartial: false
+    }
+    // this.speechRecognition.isRecognitionAvailable()
+    //   .then((available: boolean) => console.log(available))
+
+    // Start the recognition process
+    this.speechRecognition.startListening(options)
+      .subscribe(
+        (matches: Array<string>) => {
+          this.searchTerm = matches[0]
+          console.log('match words ' + matches[0])
+          this.getSearchItems()
+          //useful to update ui if there are changes on the input placement of code is critical
+          this.cd.detectChanges();
+          
+        }
+        ,
+        (onerror) => console.log('error:', onerror)
+      )
+    if (this.platform.is('ios')) {
+      this.isSpeak = true
+    }
+
+    // Stop the recognition process (iOS only)
+
+    // Get the list of supported languages
+    // this.speechRecognition.getSupportedLanguages()
+    //   .then(
+    //     (languages: Array<string>) => console.log(languages),
+    //     (error) => console.log(error)
+    //   )
+
+    // getSupportedLanguages result on Android:
+
+
+    //   let supportedLanguagesAndroid =
+    //     ["af-ZA", "id-ID", "ms-MY", "ca-ES", "cs-CZ", "da-DK", "de-DE", "en-AU", "en-CA",
+    //       "en-001", "en-IN", "en-IE", "en-NZ", "en-PH", "en-ZA", "en-GB", "en-US", "es-AR",
+    //       "es-BO", "es-CL", "es-CO", "es-CR", "es-EC", "es-US", "es-SV", "es-ES", "es-GT",
+    //       "es-HN", "es-MX", "es-NI", "es-PA", "es-PY", "es-PE", "es-PR", "es-DO", "es-UY",
+    //       "es-VE", "eu-ES", "fil-PH", "fr-FR", "gl-ES", "hr-HR", "zu-ZA", "is-IS", "it-IT",
+    //       "lt-LT", "hu-HU", "nl-NL", "nb-NO", "pl-PL", "pt-BR", "pt-PT", "ro-RO", "sl-SI",
+    //       "sk-SK", "fi-FI", "sv-SE", "vi-VN", "tr-TR", "el-GR", "bg-BG", "ru-RU", "sr-RS",
+    //       "uk-UA", "he-IL", "ar-IL", "ar-JO", "ar-AE", "ar-BH", "ar-DZ", "ar-SA", "ar-KW",
+    //       "ar-MA", "ar-TN", "ar-OM", "ar-PS", "ar-QA", "ar-LB", "ar-EG", "fa-IR", "hi-IN",
+    //       "th-TH", "ko-KR", "cmn-Hans-CN", "cmn-Hans-HK", "cmn-Hant-TW", "yue-Hant-HK",
+    //       "ja-JP"];
+
+
+    //   // getSupportedLanguages result on iOS:
+
+    //   let supportedLanguagesIOS =
+    //     ["nl-NL", "es-MX", "zh-TW", "fr-FR", "it-IT", "vi-VN", "en-ZA", "ca-ES", "es-CL", "ko-KR",
+    //       "ro-RO", "fr-CH", "en-PH", "en-CA", "en-SG", "en-IN", "en-NZ", "it-CH", "fr-CA", "da-DK",
+    //       "de-AT", "pt-BR", "yue-CN", "zh-CN", "sv-SE", "es-ES", "ar-SA", "hu-HU", "fr-BE", "en-GB",
+    //       "ja-JP", "zh-HK", "fi-FI", "tr-TR", "nb-NO", "en-ID", "en-SA", "pl-PL", "id-ID", "ms-MY",
+    //       "el-GR", "cs-CZ", "hr-HR", "en-AE", "he-IL", "ru-RU", "de-CH", "en-AU", "de-DE", "nl-BE",
+    //       "th-TH", "pt-PT", "sk-SK", "en-US", "en-IE", "es-CO", "uk-UA", "es-US"];
+  }
+
+  stopSpeech() {
+    this.speechRecognition.stopListening().then(() => {
+      this.isSpeak = false
+    })
   }
 
   getSearchRecordings(searchRecord) {
@@ -314,12 +498,11 @@ export class SearchListPage implements OnInit {
     this.items = reorderArray(this.items, indexes);
   }
 
-
   showOthersPopover(event) {
-    let popover = this.popoverCtrl.create(OthersoverPage);
+    let popover = this.popoverCtrl.create(OthersoverPage, { items: this.allItems, siteName: this.siteName });
     popover.present({
       ev: event
-    });
+    })
     //dismiss is done on the popover
   }
 
@@ -383,7 +566,7 @@ export class SearchListPage implements OnInit {
           this.utils.showAlert("", "Audio not Found!", "There is no audio recording for : " + item.ct)
         } else {
           this.platform.ready().then(() => {
-            this.recUtils.downPlay(this.url + "/" + item.ctmref)
+            this.recUtils.downPlay(this.url + "/" + item.ctmref, this.audio)
             this.duration = localStorage.getItem("duration")
           })
         }
@@ -391,12 +574,12 @@ export class SearchListPage implements OnInit {
       } else {
         if (item.selectedSlow) {
           this.platform.ready().then(() => {
-            this.recUtils.downPlay(this.url + "/" + item.msr)
+            this.recUtils.downPlay(this.url + "/" + item.msr, this.audio)
           })
 
         } else {
           this.platform.ready().then(() => {
-            this.recUtils.downPlay(this.url + "/" + item.mrr)
+            this.recUtils.downPlay(this.url + "/" + item.mrr, this.audio)
           })
         }
         this.duration = localStorage.getItem("duration")
@@ -407,6 +590,7 @@ export class SearchListPage implements OnInit {
     }
 
   }
+
 
   currentDisplay: any
   woman(item, id, event?) {
@@ -421,32 +605,45 @@ export class SearchListPage implements OnInit {
           let contx = item.ct
           //  this.utils.showAlert("", "Context Sentence...", contx.fontcolor("blue") + " (" + item.ctr + ")")
           this.platform.ready().then(() => {
-            this.recUtils.downPlay(this.url + "/" + item.ctfref)
+
+            this.recUtils.downPlay(this.url + "/" + item.ctfref, this.audio)
             this.duration = localStorage.getItem("duration")
           })
         }
       } else {
         if (item.selectedSlow) {
           this.platform.ready().then(() => {
-            this.recUtils.downPlay(this.url + "/" + item.fsr)
+            // if (this.platform.is("core") || this.platform.is("mobileweb")) {
+            //   this.audio.nativeElement.src = this.url + "/" + item.fsr
+            //   this.audio.nativeElement.play()
+            //  //   this.duration=this.audio.nativeElement.duration
+            // } else {
+            this.recUtils.downPlay(this.url + "/" + item.fsr, this.audio)
             this.duration = localStorage.getItem("duration")
-            if (this.isPlaying) {
-              let index = this.items.indexOf(item);
-              index >= this.items.length - 1 ? index = 0 : index++;
-              this.autoPlayTrack(this.items[index], this.duration);
-              this.currentDisplay = this.items[index]
-            }
+            // if (this.isPlaying) {
+            //   let index = this.items.indexOf(item);
+            //   index >= this.items.length - 1 ? index = 0 : index++;
+            //   this.autoPlayTrack(this.items[index], this.duration);
+            //   this.currentDisplay = this.items[index]
+            // }
+            // }
           })
         } else {
-          this.recUtils.downPlay(this.url + "/" + item.frr)
+          // if (this.platform.is("core") || this.platform.is("mobileweb")) {
+          //   this.audio.nativeElement.src = this.url + "/" + item.frr
+          //   this.audio.nativeElement.play()
+          //   this.duration=this.audio.nativeElement.duration
+          // } else {
+          this.recUtils.downPlay(this.url + "/" + item.frr, this.audio)
           this.duration = localStorage.getItem("duration")
-          if (this.isPlaying) {
-            let index = this.items.indexOf(item);
-            console.log("index of " + index)
-            index >= this.items.length - 1 ? index = 0 : index++;
-            this.autoPlayTrack(this.items[index], this.duration);
-            this.currentDisplay = this.items[index]
-          }
+          // if (this.isPlaying) {
+          //   let index = this.items.indexOf(item);
+          //   console.log("index of " + index)
+          //   index >= this.items.length - 1 ? index = 0 : index++;
+          //   this.autoPlayTrack(this.items[index], this.duration);
+          //   this.currentDisplay = this.items[index]
+          // }
+          // }
         }
       }
       this.recUtils.createElement(id, item)
@@ -461,8 +658,54 @@ export class SearchListPage implements OnInit {
     item.isPlay = false
   }
 
+  // list all languages to select
+  getLanguages() {
+
+    // will use a callback to update info
+    this.nav.push(LanguagePage, { lang: this.getLangCallbackFunction });
+  }
+
+
+  //only being called after selecting from the language lists
+  getLangCallbackFunction = (items?) => {
+    return new Promise((resolve, reject) => {
+      //this.ngOnInit()
+      this.db.get("latestSiteName").then(site => {
+        this.siteName = site
+        this.flag = localStorage.getItem("cc")
+        // this.db.get(this.siteName + 'Playlist').then(str => {
+        //   if (str != null) { this.playlists = JSON.parse(str) }
+        // })
+        this.indices = { "start": 0, "end": 6 }
+        this.db.get(site + "menu").then((menu) => {
+          this.lessonMenu = menu
+          this.filterItems()
+        })
+       
+        this.items$.next(items)
+        this.items = items
+        this.allItems = items
+        this.isViewAll = true
+        this.opts = 'search'
+        this.searchTerm = ""
+        this.virtualList.refreshList()
+        this.db.get('rtl').then(val => {
+          if (val) {
+            this.rtl = 'rtl'
+          } else {
+            this.rtl = "ltr"
+          }  //      this.changeLanguage()
+        })
+      }).catch((err) => {
+        console.log("call err " + err)
+      })
+
+      resolve();
+    });
+  }
+
   params: any
-  presentRecord(item) {
+  goRecord(item) {
     //if no filtering
     if (this.isViewAll) this.items = this.allItems
     this.params = {
@@ -489,14 +732,14 @@ export class SearchListPage implements OnInit {
     this.recUtils.playRecord(item, this.siteName)
   }
 
-  addPlayList() {
-    this.db.remove(this.siteName + 'Playlist')
-    this.db.set(this.siteName + 'Playlist', JSON.stringify(this.tempPlaylists)).then(() => { })
-    this.tempPlaylists = []
-    //find all match then loop thru to change value 
-    this.items.filter(item => item.isAddPlaylist == true).forEach(it => it.isAddPlaylist = false)
-    this.utils.presentToast('Selected items added to Playlist.', 1500)
-  }
+  // addPlayList() {
+  //   this.db.remove(this.siteName + 'Playlist')
+  //   this.db.set(this.siteName + 'Playlist', JSON.stringify(this.tempPlaylists)).then(() => { })
+  //   // this.tempPlaylists = []
+  //   //find all match then loop thru to change value 
+  //   //this.items.filter(item => item.isAddPlaylist == true).forEach(it => it.isAddPlaylist = false)
+  //   this.utils.presentToast('Selected items added to Playlist.', 1500)
+  // }
 
 
   currentTrack: any = this.items[0]
@@ -508,13 +751,16 @@ export class SearchListPage implements OnInit {
   selectList(event, item, start, end) {
     this.idxStart = start
     this.idxEnd = end
-    if (!item.isAddPlayList) {
+    if (!item.isAddPlaylist) {
       item.isAddPlaylist = true
-      if (this.tempPlaylists.length == 0) this.utils.presentToast('Press the RED circle + button to Add Selected items to Playlist.', 2000)
-      this.utils.addItem(this.tempPlaylists, item)
+      let filteritems = this.items.filter((item) => {
+        return (item.isAddPlaylist)
+      })
+      if (filteritems.length == 1) this.utils.presentToast('Selected item added to Playlist.', 1500)
+      //  this.utils.addItem(this.tempPlaylists, item)
     } else {
       item.isAddPlaylist = false
-      this.utils.removeItem(this.tempPlaylists, item)
+      //  this.utils.removeItem(this.tempPlaylists, item)
     }
 
   }

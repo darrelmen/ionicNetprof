@@ -5,7 +5,7 @@ import { Storage } from '@ionic/storage';
 import { RecordUtils } from '../../utils/record-utils';
 import { CommonUtils } from '../../utils/common-utils';
 import WaveSurfer from 'wavesurfer.js';
-
+import { File, FileEntry } from '@ionic-native/file';
 
 @Component({
 	selector: 'page-quizTrans',
@@ -25,7 +25,7 @@ export class QuizTransPage {
 	transOpt: any = "scribeContext"
 
 	constructor(public navCtrl: NavController, public db: Storage, public recUtils: RecordUtils, public alertCtrl: AlertController,
-		public utils: CommonUtils, public platform: Platform) {
+		public utils: CommonUtils, public platform: Platform,public file:File) {
 
 		this.db.get("items").then((items: Array<Item>) => {
 			this.items = items
@@ -40,12 +40,15 @@ export class QuizTransPage {
 			console.log("latest " + site)
 			this.siteName = site
 		})
-
+		this.theme = localStorage.getItem("theme")
 	}
+	theme: string
 
 	flash: any;
 	createTitle(index) {
 
+		try {
+		
 		//this.flash=str;
 		if (index > 0 && index < this.questions.length) {
 			var el = document.getElementById('flashMsg' + index);
@@ -65,52 +68,59 @@ export class QuizTransPage {
 			el.style.fontSize = "15px"
 			el.innerHTML = str
 		}
-
+	
+	} catch (error) {
+		console.error("create title " + error)	
+	}
 	}
 
 	isCorrect = 1
 	inputValue = ""
 	checkFlashCard(inputTxt, itemVal, index) {
-		if (inputTxt != "") {
-			let inpCleantxt = inputTxt.replace(/[.!?,@+&$#*-=]/gi, " ").split(" ")
-			let arrItem = itemVal.replace(/[.!?,@+&$#*-=]/gi, " ").split(" ")
+		try {
+			if (inputTxt != "") {
+				let inpCleantxt = inputTxt.replace(/[.!?,@+&$#*-=]/gi, " ").split(" ")
+				let arrItem = itemVal.replace(/[.!?,@+&$#*-=]/gi, " ").split(" ")
 
-			if (this.siteName == "Mandarin" || this.siteName == "Korean" || this.siteName == "Japanese") {
-				inpCleantxt = inputTxt.replace(/[.!?,@+&$#*-=]/gi, " ").split("")
-				arrItem = itemVal.replace(/[.!?,@+&$#*-=]/gi, " ").split("")
-			}
+				if (this.siteName == "Mandarin" || this.siteName == "Korean" || this.siteName == "Japanese") {
+					inpCleantxt = inputTxt.replace(/[.!?,@+&$#*-=]/gi, " ").split("")
+					arrItem = itemVal.replace(/[.!?,@+&$#*-=]/gi, " ").split("")
+				}
 
-			var answer = ""
-			//this.answer.nativeElement
-			var el = document.getElementById(index);
-			if (itemVal != "") {
-				// inpCtxt.forEach(function (item, index) {
-				//   if (arrItem[index].toLowerCase() != item.toLowerCase()) {
-				//     //TODO item
-				//     answer = answer + item.fontcolor("red") + " "
-				//   } else {
-				//     answer = answer + item + " "
-				//   }
-				// })
-				let inpTotal = inpCleantxt.length
-				this.isCorrect = 0
-				let x = 0
-				arrItem.forEach(function (item, index) {
+				var answer = ""
+				//this.answer.nativeElement
+				var el = document.getElementById(index);
+				if (itemVal != "") {
+					// inpCtxt.forEach(function (item, index) {
+					//   if (arrItem[index].toLowerCase() != item.toLowerCase()) {
+					//     //TODO item
+					//     answer = answer + item.fontcolor("red") + " "
+					//   } else {
+					//     answer = answer + item + " "
+					//   }
+					// })
+					let inpTotal = inpCleantxt.length
+					this.isCorrect = 0
+					let x = 0
+					arrItem.forEach(function (item, index) {
 
-					if (index < inpTotal) {
-						if (inpCleantxt[index].toLowerCase() != item.toLowerCase()) {
-							answer = answer + inpCleantxt[index].fontcolor("red") + " "
-							x++
+						if (index < inpTotal) {
+							if (inpCleantxt[index].toLowerCase() != item.toLowerCase()) {
+								answer = answer + inpCleantxt[index].fontcolor("red") + " "
+								x++
+							} else {
+								answer = answer + item.fontcolor("green") + " "
+							}
 						} else {
-							answer = answer + item.fontcolor("green") + " "
+							answer = answer + " (" + item + ") "
 						}
-					} else {
-						answer = answer + " (" + item + ") "
-					}
-				})
-				this.isCorrect = x
+					})
+					this.isCorrect = x
+				}
+				el.innerHTML = answer
 			}
-			el.innerHTML = answer
+		} catch (error) {
+			console.error("waveForm error " + error)
 		}
 	}
 
@@ -136,6 +146,7 @@ export class QuizTransPage {
 		if (this.isCorrect == 0) {
 			this.score++
 		}
+		this.isNotPlay = true
 		this.inputValue = ""
 		this.createTitle(i + 1)
 		this.slides.lockSwipes(false);
@@ -158,7 +169,6 @@ export class QuizTransPage {
 			count++
 			//  q.wordsRightOrder = wordsRightOrder
 			this.questions.push(item)
-
 		}
 		this.slides.lockSwipes(false);
 		this.slides.slideTo(1, 1000);
@@ -199,17 +209,25 @@ export class QuizTransPage {
 
 	// }
 
-	isNotPlay=true
-	playWave(){
-		this.wavesurfer.play()
-		this.isNotPlay=false
+	isNotPlay = true
+	playWave() {
+		//this.wavesurfer.on('ready', function () {
+			console.log("wave ")
+			this.wavesurfer.play()
+		//});
+		
+		this.isNotPlay = false
+		this.wavesurfer.on('finish', function () {
+			this.isNotPlay = true
+			console.log("wave end ")
+		});
 	}
-	pauseWave(){
+	pauseWave() {
 		this.wavesurfer.pause();
-		this.isNotPlay=true
+		this.isNotPlay = true
 	}
-	
-	wavesurfer:any
+
+	wavesurfer: any
 	loadWaveform() {
 
 		let index = this.slides.getActiveIndex() - 1
@@ -220,44 +238,55 @@ export class QuizTransPage {
 				waveColor: 'violet',
 				progressColor: 'blue'
 			}
+			try {
+				let item = this.questions[index]
+				this.wavesurfer = WaveSurfer.create(options);
 
-			let item = this.questions[index]
-			this.wavesurfer =  WaveSurfer.create(options);
-		
+				this.platform.ready().then(() => {
+					if (this.platform.is("iphone") || this.platform.is("ipad")) {
+						this.recUtils.downLoadAudio(this.url + "/" + item.ctmref).then((url) => {
+							this.wavesurfer.load(url);
+						})
+					} else if (this.platform.is("core") || this.platform.is("mobileweb")) {
+						console.log("scribe Context " + "/" + item.ctmref)
 
-			this.platform.ready().then(() => {
-				if (this.platform.is("iphone") || this.platform.is("ipad")) {
-					this.recUtils.downLoadAudio(this.url + "/" + item.ctmref).then((url) => {
-						this.wavesurfer.load(url);
-					})
-				} else if (this.platform.is("core") || this.platform.is("mobileweb")) {
-					console.log("scribe Context " + "/npfClassroom/" + this.siteName + "/" + item.ctmref)
+						this.wavesurfer.load( "/" + item.ctmref)
+					} else {
+						
+						this.recUtils.downLoadAudio(this.url + "/" + item.ctmref).then((url) => {
+					  		this.wavesurfer.load(url);
+						})
+					}
+				})
 
-					this.wavesurfer.load("/npfClassroom" + this.siteName + "/" + item.ctmref)
-				} else {
-					 this.wavesurfer.load(this.url + "/" + item.ctmref)
-				}
-			})
+			} catch (error) {
+				console.error("waveForm error " + error)
+			}
 		} else if (this.transOpt == "scribeVocab" && index < this.testItems) {
 			let options = {
 				container: waveid,
 				waveColor: 'violet',
 				progressColor: 'green'
 			}
-			let item = this.questions[index]
-			this.wavesurfer = WaveSurfer.create(options);
-			this.platform.ready().then(() => {
-				if (this.platform.is("ios") || this.platform.is("iphone") || this.platform.is("ipad")) {
-					this.recUtils.downLoadAudio(this.url + "/" + item.mrr).then((url) => {
-						this.wavesurfer.load(url);
-					})
-				} else if (this.platform.is("core") || this.platform.is("mobileweb")) {
-					this.wavesurfer.load("/npfClassroom" + this.siteName + "/" + item.mrr)
-				} else {
-					this.wavesurfer.load(this.url + "/" + item.mrr)
-
-				}
-			})
+			try {
+				let item = this.questions[index]
+				this.wavesurfer = WaveSurfer.create(options);
+				this.platform.ready().then(() => {
+					if (this.platform.is("ios") || this.platform.is("iphone") || this.platform.is("ipad")) {
+						this.recUtils.downLoadAudio(this.url + "/" + item.mrr).then((url) => {
+							this.wavesurfer.load(url);
+						})
+					} else if (this.platform.is("core") || this.platform.is("mobileweb")) {
+						this.wavesurfer.load("/" + item.mrr)
+					} else {
+						this.recUtils.downLoadAudio(this.url + "/" + item.mrr).then((url) => {
+							this.wavesurfer.load(url);
+						})
+					}
+				})
+			} catch (error) {
+				console.error("waveForm error " + error)
+			}
 
 		}
 

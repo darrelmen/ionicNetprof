@@ -7,7 +7,7 @@
     </ion-col>
     <ion-col width-80>
       <ion-label text-center color="light">Simplified Pronunciation Feedback</ion-label>
-      <ion-title text-center color="danger" >{{auth.SITE_NAME}}</ion-title>
+      <ion-title text-center color="secondary" >{{auth.SITE_NAME}}</ion-title>
     </ion-col>
     <ion-col width-10>
       <ion-avatar item-right>
@@ -23,7 +23,7 @@
   <div >
     <div padding>
       <h1 text-center>Thanks for visiting NetProF-lite, {{ auth.user }}! </h1>
-      <button ion-button block (click)="logout()">Logout</button>
+      <button ion-button color={{theme}}  block (click)="logout()">Logout</button>
     </div>  
   </div>
 </ion-content>

@@ -31,7 +31,7 @@ export class AutoPlayPage {
   isAutoPlay = true
   isBoth = false
   duration: any = 1500
-
+  @ViewChild("audio") audio;
   @ViewChild('mySlider') slider: Slides;
 
   constructor(
@@ -67,11 +67,11 @@ export class AutoPlayPage {
     this.slider.initialSlide = this.index
     this.slider.speed = 300
     this.slider.loop = true
-  
-  
+
+
   }
 
-  ionViewDidEnter(){
+  ionViewDidEnter() {
     this.url = this.navParam.get("url")
     this.startAutoPlay()
   }
@@ -95,9 +95,9 @@ export class AutoPlayPage {
       // this.utils.showAlert("", "Audio not Found!", "There is no audio recording for : " + item.fl)
     } else {
       this.recUtils.createElement(item.id, item)
-      this.recUtils.downPlay(this.url + "/" + item.frr)
+      this.recUtils.downPlay(this.url + "/" + item.frr, this.audio)
       this.duration = localStorage.getItem("duration")
-     }
+    }
   }
 
 
@@ -114,33 +114,35 @@ export class AutoPlayPage {
         }
         // to get the duration during autoplay
         if (this.isAutoPlay) {
+          if (this.duration == undefined || this.duration == null) this.duration = 2500
           this.slider.autoplay = (parseInt(this.duration) + 300) * 2
           //this.slider.autoplay = 1000
-         }
+        }
         var item: Item = this.items[indx - 1]
         // cannot move this code up for it gets the next index
         this.woman(item, indx)
-        setTimeout(() => {
-          this.recUtils.textToSpeech(item).then((ret) => {
-            console.log("Tts complete " + ret)
-            //  this.ttsComplete = ret
-          })
-        }, parseInt(this.duration) + 100)
-      
-       
+        if (this.platform.is("ios") || this.platform.is("android") || this.platform.is("ipad")) {
+          setTimeout(() => {
+            this.recUtils.textToSpeech(item).then((ret) => {
+              console.log("Tts complete " + ret)
+              //  this.ttsComplete = ret
+            })
+          }, parseInt(this.duration) + 100)
+        }
+
       }
     }, 300);
   }
 
- 
+
 
   startAutoPlay() {
     this.isAutoPlay = true
     this.slider.freeMode = true;
-    if (this.duration == undefined) 2500
+    if (this.duration == undefined || this.duration == null) this.duration = 2500
     this.slider.autoplay = parseInt(this.duration) + 300;
 
-   // this.slider.autoplay = 1300;
+    // this.slider.autoplay = 1300;
 
     this.slider.loop = true;
     //this.slider.slideTo(this.slider.getActiveIndex() + 1)

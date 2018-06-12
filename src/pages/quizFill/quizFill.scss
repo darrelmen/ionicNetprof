@@ -8,8 +8,7 @@
 		
 				ion-item {
 					margin-bottom: 2px;
-					font-size: 1.2em;
-					background-color: map-get($colors, primary);
+					font-size: 0.8em;
 				}
 		
 				flash-card {
@@ -28,7 +27,7 @@
 					align-items: center;
 					top: 10;
 					button {
-						font-size: 1.3em;
+						font-size: 1.2em;
 						font-weight: bold;
 					}
 				}

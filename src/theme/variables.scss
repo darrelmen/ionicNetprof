@@ -38,8 +38,11 @@ $colors: (
   secondary:  #32db64,
   danger:     #f53d3d,
   light:      #f4f4f4,
-  dark:       #222
+  dark:       #222,
+  blue-theme:#0fb3ff ,
+  green-theme:#388896
 );
+
 
 
 $popover-md-width: 70%;
@@ -75,8 +78,8 @@ $popover-wp-width: 70%;
 // default are overridden.
 
 @import "ionic.theme.default";
-
-
+@import "./green-theme";
+@import "./blue-theme";
 // Ionicons
 // --------------------------------------------------
 // The premium icon font for Ionic. For more info, please see:
@@ -101,8 +104,8 @@ $popover-wp-width: 70%;
 
 }
 .ion-ios-turtle-press,
-.ion-ios-turtle-outline,
-.ion-md-turtle-outline,
+.ion-ios-turtle-press-outline,
+.ion-md-turtle-press-outline,
 .ion-md-turtle-press{
 
   // ../../ is the root directory from www  browser
@@ -110,11 +113,29 @@ $popover-wp-width: 70%;
 
 }
 
-.ion-ios-updown,
-.ion-ios-updown-outline,
-.ion-md-updown{
 
-  // ../../ is the root directory from www  browser
- // content: url(../assets/img/updown.png);
+.ion-ios-male,
+.ion-ios-male-outline,
+.ion-md-male-outline,
+.ion-md-male {
 
+  // ../../ is the root directory from www browser
+  content: url(../assets/img/boy.png);
 }
+
+.ion-ios-female,
+.ion-ios-female-outline,
+.ion-md-female-outline,
+.ion-md-female {
+
+  // ../../ is the root directory from www browser
+  content: url(../assets/img/girl2.png);
+}
+// .ion-ios-updown,
+// .ion-ios-updown-outline,
+// .ion-md-updown{
+
+//   // ../../ is the root directory from www  browser
+//  // content: url(../assets/img/updown.png);
+
+// }
