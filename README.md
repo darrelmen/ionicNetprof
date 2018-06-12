@@ -52,9 +52,7 @@ ionic cordova plugin add cordova-plugin-file-transfer@1.6.3
 
 ionic cordova build android
 
-- We need this for the recording to be posted properly to the server.
-
-- On the terminal run
+- Important! This is a mandatory process for the recording to be posted properly to the server. On the terminal, run
 
 - - **cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.**
 
@@ -78,7 +76,7 @@ ionic cordova build android
 - Click on Run then select your emulator
 
 
-### Running on Xcode/Ios Device
+### Running on Xcode/ios Device
 
 - Open xCode
 
@@ -91,7 +89,7 @@ ionic cordova build android
 - Run
 
 
-** Note :**
+**Note :**
 
 In order to run on browser we need to do minor changes to following files . 
 
