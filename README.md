@@ -1,50 +1,50 @@
 # ionicNetprof
 Ionic version of Netprof
 
-How to install netprof-lite ionic app
+### How to install netprof-lite ionic app
 
-If you don’t have these installed yet
+- If you don’t have these installed yet
 
-Download and install the latest Android Studio
+- Download and install the latest Android Studio
 
-Download and install the java sdk
+- Download and install the java sdk
 
-Download and install the latest node.js
+- Download and install the latest node.js
 
-Download and install the latest Xcode
+- Download and install the latest Xcode
 
-Any editor will work but I prefer to use. 
-Visual Studio Code-it has and integrated debugging tools
+- Any editor will work but I prefer to use. 
+- Visual Studio Code-it has and integrated debugging tools
 
-https://code.visualstudio.com/download
+- - https://code.visualstudio.com/download
 
-Use Mac download
+### Use Mac download
 
-Open a terminal.
+- Open a terminal.
 
-Please make sure latest Node 6 LTS and NPM 3+ are installed.
+- Please make sure latest Node 6 LTS and NPM 3+ are installed.
 
-Then, install the CLI globally (you may need sudo):
+- Then, install the CLI globally (you may need sudo):
 
-npm install -g ionic@3.9.2
+- npm install -g ionic@3.9.2
 
-Check Ionic Docs https://ionicframework.com/docs/
+- - Check Ionic Docs https://ionicframework.com/docs/
 
-Create your working directory
+- Create your working directory
 
-Download or checkout ionicNetprof
+- Download or checkout ionicNetprof
 
-git checkout https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
+- git checkout https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
 
-Go to the ionicNetprof Directory
+- Go to the ionicNetprof Directory
 
--- The first time will take several minutes to install all the plugins and dependencies
+- - The first time will take several minutes to install all the plugins and dependencies
 
-npm install
+- npm install
 
-ionic cordova build android
+- ionic cordova build android
 
-ionic cordova build ios 
+- ionic cordova build ios 
 
 If you get an error run this again.
 
@@ -52,49 +52,53 @@ ionic cordova plugin add cordova-plugin-file-transfer@1.6.3
 
 ionic cordova build android
 
--- We need this for the recording to be posted properly to the server.
+- We need this for the recording to be posted properly to the server.
 
-cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.
+- On the terminal run
 
-If you want to check the codes, you can open the downloaded code from your editor.
+- - **cp resources/*.java platforms/android/app/src/main/java/org/apache/cordova/media/.**
 
-All of the codes are on src directory.
+- If you want to check the codes, you can open the downloaded code from your editor.
 
-
-Running on Android Emulator/Android Device 
-
-Open Android studio
-
-Find your project then go to platforms/android
-
-Create an AVD (Android Virtual Device) emulator
-
-Tools/AVD Manager
-
-Click on LogCat - to view the logs
-
-Click on Run then select your emulator
+- All of the codes are on src directory.
 
 
-Running on Xcode/Ios Device
+### Running on Android Emulator/Android Device 
 
-Open xCode
+- Open Android studio
 
-Find your project then go to platforms/ios/netProF-lite.xcodeproj
+- Find your project then go to platforms/android
 
-Click on the project
+- Create an AVD (Android Virtual Device) emulator
 
-General/Signing/Team - select any provisioning you have.
+- Tools/AVD Manager
 
-Run
+- Click on LogCat - to view the logs
+
+- Click on Run then select your emulator
 
 
-Note :
+### Running on Xcode/Ios Device
+
+- Open xCode
+
+- Find your project then go to platforms/ios/netProF-lite.xcodeproj
+
+- Click on the project
+
+- General/Signing/Team - select any provisioning you have.
+
+- Run
+
+
+** Note :**
 
 In order to run on browser we need to do minor changes to following files . 
 
-Auth-service.js
-Login.ts ,Chapterover.ts,
-Menu items.ts Record.ts 
+- auth-service.js
+- login.ts 
+- menuitems.ts
+- record.ts 
 
-This is needed because the Native-advance-http does not run on a browser and we need it to bypass CORs for iOS - we can fix this later when we have the correct certs and not use the native but the angular http.
+- This is needed because the Native-advance-http does not run on a browser and we need it to bypass CORs for iOS.
+- We can fix this later when we have the correct certs and not use the native but the angular httpclient.
