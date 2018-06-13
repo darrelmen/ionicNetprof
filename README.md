@@ -40,6 +40,8 @@ Ionic version of Netprof
 
 - - The first time will take several minutes to install all the plugins and dependencies
 
+- npm install -g ionic cordova
+
 - npm install
 
 - ionic cordova build android
