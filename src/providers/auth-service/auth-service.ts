@@ -430,7 +430,16 @@ export class AuthService {
             type: any
             name: any
             count: number
+            sub2lesson?: Array<{
+                type: any
+                name: any
+                count: number
+            }>
         }>
+        grammar?:Array<{
+            type: any
+            name: any
+            count: number}>
         topic?: Array<{
             type: any
             name: any
@@ -475,7 +484,7 @@ export class AuthService {
                     this.items.push(tmpItem)
                     count++
                 }
-                this.lessonMenu.push({ type: lesson, name: lessonId, count: count, sublesson: [], topic: [] })
+                this.lessonMenu.push({ type: lesson, name: lessonId, count: count, sublesson: [], grammar:[],topic: [] })
             }
         } else {
             // 2 level hierarchy 
@@ -484,7 +493,7 @@ export class AuthService {
                 let lesson = children.type
                 let lessonId = children.name
                 let lessonTotal = 0
-                this.lessonMenu.push({ type: lesson, name: lessonId, count: lessonTotal, sublesson: [], topic: [] })
+                this.lessonMenu.push({ type: lesson, name: lessonId, count: lessonTotal, sublesson: [],grammar:[], topic: [] })
                 for (let items of children.children) {
                     let sublesson = items.type
                     let sublessonId = items.name
@@ -498,7 +507,7 @@ export class AuthService {
                         //let ct= this.parseWords(siteName,item.ct)
                         //let fl= this.parseWords(siteName,item.fl)
                         tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + sublesson + " " + sublessonId + " " + item.fl + " "
-                            + item.en + " " + item.ct + " " + item.tl
+                            + item.en + " " + item.ct + " " + item.tl + " " + item.Topic + " " + item.Grammar  + " "
                         // tmpItem.searchTopic= lesson +" " + sublesson + " " + item.ct + " " + item.fl + " " + item.en
                         //for scores and history, needs to add manually otherwise it will not show up later although it is already initialized. 
                         // make sense you dont need to add what you dont need
@@ -515,6 +524,10 @@ export class AuthService {
                     lessonTotal++
 
                 }
+                this.lessonMenu[lessIdx].sublesson=this.lessonMenu[lessIdx].sublesson.sort(function (a, b) {
+                    return parseFloat(a.name) - parseFloat(b.name);
+                })
+
                 this.lessonMenu[lessIdx].count = lessonTotal
                 lessIdx++
             }

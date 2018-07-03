@@ -28,14 +28,14 @@ export class OthersoverPage {
     this.pages = [
       // { title: 'Favorite', component: FavoritePage, icon: 'bookmark' },
       //  { title: 'Playlist', component: PlaylistPage, icon: 'list-box' },
-      { title: 'Progress', component: ProgressPage, icon: 'analytics' },
+     // { title: 'Progress', component: ProgressPage, icon: 'analytics' },
       {
         title: 'Theme', component: '', icon: 'color-fill',
         sub: [{ subtitle: 'Green', component: 'green-theme' },
         { subtitle: 'Blue', component: 'blue-theme' },
         { subtitle: 'Default', component: 'ionic.theme.default' }]
       },
-      { title: 'Contact us', component: ContactPage, icon: 'contacts' },
+    //  { title: 'Contact us', component: ContactPage, icon: 'contacts' },
 
       { title: 'About', component: AboutPage, icon: 'information-circle' },
       { title: 'Logout ' + this.auth.user, component: LogoutPage, icon: 'log-out' }

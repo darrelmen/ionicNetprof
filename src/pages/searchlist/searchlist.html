@@ -60,11 +60,16 @@
       </ion-col>
     </ion-row>
  </ion-navbar>
+
+
+  <!--  these features will be enabled in the future.
+    
   <ion-navbar no-padding color="light" hideBackButton="true">
     <ion-segment color="dark" top [(ngModel)]="opts" (ionChange)="segmentChanged($event)">
       <ion-segment-button value="search">
         Items
       </ion-segment-button>
+
       <ion-segment-button value="quizdrop">
         Syntax
       </ion-segment-button>
@@ -77,12 +82,11 @@
       <ion-segment-button value="mixmatch">
         Match
       </ion-segment-button>
-
     </ion-segment>
-
   </ion-navbar>
+  -->
 
-  <div style="padding-left: 10px;background-color:#f4f4f4;" *ngIf="opts=='search'">
+  <div style="padding-left: 10px;background-color:#f4f4f4;font-size:14px" *ngIf="opts=='search'">
     Showing
     <span class="badge">{{indices?.start + 1}}</span>
     -
@@ -126,9 +130,14 @@
     </ion-card>
 
   </div>
-  <virtual-list [source$]="items$" no-padding *ngIf="opts=='search'" (update)="scrollItems = $event" (change)="indices = $event"
-    [childHeight]=180>
-    <ion-card #ionCard no-padding *ngFor="let item of scrollItems ; let idx = index; trackBy: trackByFunction">
+
+ <!-- <ion-list [virtualScroll]="items">
+    <ion-card #ionCard no-padding *virtualItem="let item ; let idx = index;">  -->
+    
+
+<virtual-list [source$]="items$" no-padding *ngIf="opts=='search'" (update)="scrollItems = $event" (change)="indices = $event"
+    [childHeight]=180> 
+    <ion-card #ionCard no-padding *ngFor="let item of scrollItems ; let idx = index; trackBy: trackByFunction"> 
       <h3>
         <font color="darkred">&nbsp;{{ item.lesson }} {{item.lessonId }} &nbsp;{{ item.sublesson }} {{item.sublessonId }}&nbsp; ID:{{item.id }}
         </font>
@@ -270,8 +279,9 @@
       </ion-list>
 
     </ion-card>
-  </virtual-list>
-  <div *ngIf="opts=='quizdrop'">
+
+</virtual-list>
+   <div *ngIf="opts=='quizdrop'">
     <page-drop></page-drop>
   </div>
 

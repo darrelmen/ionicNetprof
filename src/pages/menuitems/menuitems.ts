@@ -18,7 +18,7 @@ export class MenuItemsPage {
     this.events.subscribe('params:callback', (params, callback) => {
       // this.isRtl = direction;
       this.lessonMenu = params.menu
-      if (this.lessonMenu[0].sublesson == 0) {
+      if (this.lessonMenu[0].sublesson.length == 0) {
         this.isSublesson = false
       }
       this.items = params.items

@@ -230,7 +230,7 @@ export class RecordPage {
       this.file.checkDir(this.file.dataDirectory, this.siteName).then((isExist) => {
         fileTransfer.download(audioLocation, this.file.dataDirectory + this.siteName + "/" + audio).then((entry) => { }
           , (error) => {
-            console.log("dowload  " + error)
+            console.log("download  " + error)
           });
 
       }).catch(() => {
@@ -505,9 +505,9 @@ export class RecordPage {
                 this.playRecord(item)
                 console.log(" test score " + test.score)
               } else if (test.valid == "TOO_LOUD") {
-                this.utils.showAlert("Too Loud", "Please try again ... ")
+                this.utils.showAlert("","Recording too loud.", "Please adjust your microphone and try again ... ")
               } else if (test.valid == "TOO_SHORT") {
-                this.utils.showAlert("Too Short", "Please try again ... ")
+                this.utils.showAlert("","Recording too short.", "Please try again ... ")
               }
               this.slider.lockSwipes(false);
 

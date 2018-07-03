@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, EventEmitter,ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, OnInit, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { FormControl } from '@angular/forms'
 import {
   NavController, reorderArray, AlertController, Platform,
@@ -32,6 +32,7 @@ import { VirtualListComponent } from 'angular-virtual-list';
 //import { MenuController } from 'ionic-angular';
 
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
+import { AndroidPermissions } from '@ionic-native/android-permissions';
 
 //import * as _ from 'lodash';
 /*
@@ -103,9 +104,9 @@ export class SearchListPage implements OnInit {
   sortOrder = 'A'
   opts = "search"
   isViewAll = true
-  isPlayList=false
+  isPlayList = false
   indices?: any
-  lessonTitles:string
+  lessonTitles: string
 
   lastCorrect: any
   lastIncorrect: any
@@ -132,8 +133,9 @@ export class SearchListPage implements OnInit {
     public popoverCtrl: PopoverController,
     public viewCtrl: ViewController,
     public events: Events,
-    private cd:ChangeDetectorRef,
-    private speechRecognition: SpeechRecognition
+    private cd: ChangeDetectorRef,
+    private speechRecognition: SpeechRecognition,
+    private androidPermissions: AndroidPermissions
   ) {
 
     this.theme = localStorage.getItem("theme")
@@ -181,7 +183,7 @@ export class SearchListPage implements OnInit {
             this.items$.next(this.items)
           })
           this.db.get(site + "menu").then((menu) => {
-            this.lessonMenu =menu
+            this.lessonMenu = menu
             this.filterItems()
           })
 
@@ -205,8 +207,8 @@ export class SearchListPage implements OnInit {
   // for the menu of lessons
   filterItems() {
     //this.menuCtrl.open();
-    this.searchTerm=""
-    let params = { menu:this.lessonMenu, items: this.allItems, siteName: this.siteName + " - (" + this.allItems.length + ")", isViewAll: false }
+    this.searchTerm = ""
+    let params = { menu: this.lessonMenu, items: this.allItems, siteName: this.siteName + " - (" + this.allItems.length + ")", isViewAll: false }
     this.events.publish('params:callback', params, this.filterCallbackFunction);
   }
   //only being called after selecting from the menu
@@ -222,9 +224,9 @@ export class SearchListPage implements OnInit {
       this.lessonItems = this.params.items
       this.opts = 'search'
       this.isViewAll = this.params.isViewAll
-      this.isPlayList=this.params.isPlayList
-      if (this.items.length>0) {
-      this.lessonTitles= this.items[0].lesson+ ' ' + this.items[0].lessonId + '  ' + this.items[0].sublesson + ' ' + this.items[0].sublessonId
+      this.isPlayList = this.params.isPlayList
+      if (this.items.length > 0) {
+        this.lessonTitles = this.items[0].lesson + ' ' + this.items[0].lessonId + '  ' + this.items[0].sublesson + ' ' + this.items[0].sublessonId
       }
       resolve();
     });
@@ -233,12 +235,12 @@ export class SearchListPage implements OnInit {
     this.virtualList.scrollInto(this.items[1]);
   }
 
-  clearPlayList(){
-    this.allItems.map(item=>{ item.isAddPlaylist=false})
-    this.items=this.allItems
-    this.isPlayList=false
-    this.isViewAll=true 
-    this.items$.next(this.items)  
+  clearPlayList() {
+    this.allItems.map(item => { item.isAddPlaylist = false })
+    this.items = this.allItems
+    this.isPlayList = false
+    this.isViewAll = true
+    this.items$.next(this.items)
   }
   // itemHeader(record, recordIndex, records) {
   //   if (recordIndex === 0) {
@@ -297,7 +299,19 @@ export class SearchListPage implements OnInit {
         if (!hasPermission) {
           this.speechRecognition.requestPermission()
             .then(
-              () => console.log('Granted Speech'),
+
+              () => {
+                console.log('Granted Speech')
+                if (this.platform.is("android")) {
+                  this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE)
+                  console.log('Grant permission write')
+
+                  this.androidPermissions.requestPermissions(this.androidPermissions.PERMISSION.RECORD_AUDIO)
+                  // this.recObject.stopRecord()
+                  console.log('Grant permission rec ')
+                }
+              }
+              ,
               () => console.log('Denied')
             )
         }
@@ -314,8 +328,8 @@ export class SearchListPage implements OnInit {
   onSearchInput() {
     //this.searching = true;
     //this.items=this.allItems
-  //  this.items$.next(this.allItems)
- //  console.log("input searxh")
+    //  this.items$.next(this.allItems)
+    //  console.log("input searxh")
   }
   // for filtering search
   shouldShowCancel = false
@@ -381,30 +395,30 @@ export class SearchListPage implements OnInit {
 
   isSpeak = false
   getSearchSpeech() {
-    this.items=this.allItems
+    this.items = this.allItems
     this.items$.next(this.allItems)
     let lang = []
-    let speech:string
+    let speech: string
     let flagSpeak = localStorage.getItem("spk")
-    if (flagSpeak==null) flagSpeak='us'
+    if (flagSpeak == null) flagSpeak = 'us'
     if (this.platform.is('ios')) {
       lang = this.supportedLang.ios.filter((obj) => { return obj.code === flagSpeak });
-      
-       if (lang.length == 0) {
+
+      if (lang.length == 0) {
         speech = "en-GB"
-      } else{
-        speech=lang[0].desc
+      } else {
+        speech = lang[0].desc
       }
     } else {
       lang = this.supportedLang.android.filter((obj) => { return obj.code === flagSpeak });
       if (lang.length == 0) {
         speech = "en-US"
-      } else{
-        speech=lang[0].desc
+      } else {
+        speech = lang[0].desc
       }
     }
 
-     let options = {
+    let options = {
       language: speech,
       matches: 5,
       prompt: "",      // Android only
@@ -423,7 +437,7 @@ export class SearchListPage implements OnInit {
           this.getSearchItems()
           //useful to update ui if there are changes on the input placement of code is critical
           this.cd.detectChanges();
-          
+
         }
         ,
         (onerror) => console.log('error:', onerror)
@@ -681,7 +695,7 @@ export class SearchListPage implements OnInit {
           this.lessonMenu = menu
           this.filterItems()
         })
-       
+
         this.items$.next(items)
         this.items = items
         this.allItems = items
