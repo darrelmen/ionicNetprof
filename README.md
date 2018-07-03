@@ -32,9 +32,9 @@ Ionic version of Netprof
 
 - Create your working directory
 
-- Download or checkout ionicNetprof
+- Download or clone ionicNetprof
 
-- git checkout https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
+- git clone https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
 
 - Go to the ionicNetprof Directory
 
