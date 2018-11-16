@@ -12,9 +12,9 @@
 
 </ion-header>
 <ion-content>
-    <h3 padding text-center>Match the {{items.length}} words.</h3>
+    <h3 padding text-center>Match the {{itemsToTest.length}} words.</h3>
     <ion-card id="icard" padding>
-        <ion-col id="columns" col-auto no-padding *ngFor="let item of items let i = index;" draggable="true">
+        <ion-col id="columns" col-auto no-padding *ngFor="let item of itemsToTest let i = index;" draggable="true">
             <button id={{item.en}} class="column" color="secondary" ion-button  outline draggable="true">
                 {{item.fl}}
             </button>
@@ -36,7 +36,23 @@
            <h2 style="color: green;" no-padding text-center  id="score"></h2>
             <h2 no-padding text-center id="timer"></h2>
         </div>
-        <button padding *ngIf="interVl==0" (click)="restartGame()" ion-button full color={{theme}}>Start Again</button>
+      
+        <ion-row>
+			<ion-col col-4>
+				<button *ngIf="interVl==0" (click)="restartGame()" ion-button full color={{theme}}>Start Again</button>
+			</ion-col>
+			<ion-col col-4>
+				<button *ngIf="interVl==0" (click)="addPlaylist()" ion-button full color={{theme}}>
+					<ion-icon name="musical-notes"></ion-icon>&nbsp;+ Studylist
+				</button>
+			</ion-col>
+			<ion-col col-4>
+				<button *ngIf="interVl==0" (click)="sendEmail()" ion-button full color={{theme}}>
+					<ion-icon name="mail"></ion-icon>&nbsp;Send
+
+				</button>
+			</ion-col>
+		</ion-row>
     </ion-card>
 
 </ion-footer>

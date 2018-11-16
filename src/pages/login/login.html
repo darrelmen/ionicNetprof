@@ -38,13 +38,13 @@
       </ion-item>
       <ion-item>
         <ion-label><ion-icon name="lock"></ion-icon></ion-label>
-        <ion-input type="password" formControlName="password" placeholder="Password" clearOnEdit="true"></ion-input>
+        <ion-input  type="password" formControlName="password" placeholder="Password" clearOnEdit="true"></ion-input>
       </ion-item>
 
       <ion-item>
         <ion-label ><ion-icon name="globe" padding-right></ion-icon>Select a Language</ion-label>
-        <ion-select formControlName="site" [(ngModel)]="selected_site">
-           <ion-option *ngFor="let site of sites" [value]='site'>{{site.language}}  {{site.language.toLowerCase()==site.name.toLowerCase() ? '' : '- ' + site.name}} 
+        <ion-select formControlName="site" >
+           <ion-option *ngFor="let site of sites" [value]='site'>{{site.language=="Mandarin"  ?'' : site.language}}  {{site.language.toLowerCase()==site.name.toLowerCase() ? '' : site.name}} 
            </ion-option>
         </ion-select>
       </ion-item>
@@ -68,21 +68,36 @@
     <form *ngSwitchCase="'signup'" #fs="ngForm" [formGroup]="signform" (ngSubmit)="signup()">
 
       <ion-item>
-        <ion-input type="text" formControlName="username" placeholder="Username" clearInput></ion-input>
+        <ion-input type="text" formControlName="username" autocapitalize="none" placeholder="Username" clearInput></ion-input>
       </ion-item>
       <ion-item>
-        <ion-input type="password" formControlName="pass" placeholder="Password" clearInput></ion-input>
+        <ion-input type="text" formControlName="firstname" placeholder="First Name" clearInput></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input type="text" formControlName="lastname" placeholder="Last Name" clearInput></ion-input>
       </ion-item>
       <ion-item>
         <ion-input type="email" formControlName="email" placeholder="Email" clearInput></ion-input>
       </ion-item>
+      
       <ion-item>
-        <ion-label>Status</ion-label>
-        <ion-select tappable formControlName="status" [(ngModel)]="status" interface="action-sheet">
-          <ion-option value="student" selected="true">Student</ion-option>
-          <ion-option value="teacher">Teacher</ion-option>
+        <ion-label>Affiliation</ion-label>
+        <ion-select tappable formControlName="affiliation" [(ngModel)]="affiliation" interface="action-sheet">
+          <ion-option value="DLIFLC" selected="true">DLI Foreign Language Center</ion-option>
+          <ion-option value="DLI-W">DLI-Washington</ion-option>
+          <ion-option value="LTD">Language Training Detachment</ion-option>
+          <ion-option value="MTT">Mobile Training Team</ion-option>
+          <ion-option value="MIT-LL">MIT - Lincoln Lab</ion-option>
+          <ion-option value="OTHER">Others</ion-option>
         </ion-select>
       </ion-item>
+     <!-- <ion-item>
+        <ion-label>Gender</ion-label>
+        <ion-select tappable formControlName="gender" [(ngModel)]="gender" interface="action-sheet">
+          <ion-option value="male" selected="true">Male</ion-option>
+          <ion-option value="female">Female</ion-option>
+        </ion-select>
+      </ion-item> -->
       <div padding>
         <button ion-button block color={{theme}} type="submit" [disabled]="!fs.form.valid">Signup</button>
       </div>

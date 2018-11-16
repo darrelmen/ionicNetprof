@@ -5,14 +5,16 @@
 	<ion-slide class="start-slide">
 
 		<ion-card>
+			<h1>{{quizSection}}</h1>
 			<h2 style="color:rgb(156, 24, 46);padding: 50px 10px 50px 10px; text-align:center; text-align:center;">
-				<font color="blue">NOTE:</font> Fill in the missing or match the word from the selections below. </h2>
+				<font color="blue">NOTE:</font> Fill in the missing or match the word from the selections below.
+			</h2>
 			<ion-list padding-top>
 				<ion-list-header>
 					Total of Test Items
 					<ion-badge item-end color="secondary">{{testItems}}</ion-badge>
 				</ion-list-header>
-				<ion-item >
+				<ion-item>
 					<ion-label>TYPE : </ion-label>
 					<ion-select [(ngModel)]="quizType">
 						<ion-option value="vocab">VOCAB</ion-option>
@@ -32,11 +34,12 @@
 
 	<ion-slide *ngFor="let question of questions; let i = index;">
 
-		<h3 style="font-size: medium;">Question {{i+1}} of {{questions.length}}</h3>
+		<h3 style="font-size: medium;">Question {{i+1}} of {{questions.length}} - ({{quizSection}})</h3>
 
 		<flash-card [isFlipped]="question.flashCardFlipped">
 			<div class="flash-card-front">
-				<span>{{ quizType=='context' ? question.flashCardFront : btnLang=="English" ? question.flashCardBackEng : question.flashCardBack
+				<span>{{ quizType=='context' ? question.flashCardFront : btnLang=="English" ? question.flashCardBackEng :
+					question.flashCardBack
 					}}
 				</span>
 			</div>
@@ -46,8 +49,8 @@
 			<ion-col no-padding col-9>
 				<h5 style="padding:0px; font-size: medium;">{{question.questionText }}</h5>
 			</ion-col>
-	
-			<ion-col  padding-right col-3>
+
+			<ion-col padding-right col-3>
 				<button ion-button small outline color="secondary" (click)="selectEnglish()">{{btnLang}}</button>
 			</ion-col>
 		</ion-row>
@@ -65,10 +68,25 @@
 	</ion-slide>
 
 	<ion-slide>
+		<h1>{{quizSection}}</h1>
 		<h2>Final Score: {{score}} of {{questions.length}} </h2>
 
-		<button (click)="restartQuiz()" ion-button full color={{theme}}>Start Again</button>
+		<ion-row>
+			<ion-col col-4>
+				<button (click)="restartQuiz()" ion-button full color={{theme}}>Start Again</button>
+			</ion-col>
+			<ion-col col-4>
+				<button (click)="addPlaylist()" ion-button full color={{theme}}>
+					<ion-icon name="musical-notes"></ion-icon>&nbsp;+ Studylist
+				</button>
+			</ion-col>
+			<ion-col col-4>
+				<button (click)="sendEmail()" ion-button full color={{theme}}>
+					<ion-icon name="mail"></ion-icon>&nbsp;Send
 
+				</button>
+			</ion-col>
+		</ion-row>
 	</ion-slide>
 
 </ion-slides>

@@ -33,6 +33,7 @@ export class MixMatchPage {
                 } else {
                     this.testMax = items.length
                 }
+                this.items=[]
                this.items=items
                 this.siteName = site
             })
@@ -41,11 +42,26 @@ export class MixMatchPage {
     }
    theme:string
 
-     
+     ionViewWillEnter(){
+        this.db.get("latestSiteName").then((site) => {
+            this.db.get("items").then((items: Array<Item>) => {
+
+                if (items.length > 20) {
+                    this.testMax = 20
+                } else {
+                    this.testMax = items.length
+                }
+                this.items=[]
+               this.items=items
+                this.siteName = site
+            })
+        })
+        this.theme=localStorage.getItem("theme")      
+     }
+
     startSlide() {
         let items= this.utils.randomizeItems(this.items).slice(0,this.testItems)
-      
-        // for (let item of this.itemsRandom) {
+         // for (let item of this.itemsRandom) {
         //     if (item.ct == "" && this.siteName != "Japanese") continue;
         //     var wordsRightOrder;
         //     if (this.siteName == "Mandarin" || this.siteName == "Korean") {
@@ -96,7 +112,7 @@ export class MixMatchPage {
 
         // }
         
-        let params={items:items,testItems:this.testItems,siteName:this.siteName}
+        let params={items:this.items,itemsRandom:items,testItems:this.testItems,siteName:this.siteName}
         this.navCtrl.push(MixMatchGamePage,{params:params})
        
     }

@@ -1,18 +1,15 @@
 {
   "name": "netprof-lite",
-  "app_id": "",
+  "integrations": {
+    "cordova": {}
+  },
   "type": "ionic-angular",
   "proxies": [
     {
       "path": "/",
       "proxyUrl": "https://netprof.ll.mit.edu/netprof",
       "rejectUnauthorized": false,
-      "cookieRewrite":true
-    
-
+      "cookieRewrite": true
     }
-  ],
-  "integrations": {
-    "cordova": {}
-  }
+  ]
 }

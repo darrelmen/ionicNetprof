@@ -20,6 +20,7 @@ export class Item{
 	topic:string
 	inputValue:string
 	subtopic:string
+	Grammar:string
 	searchTopic:string
 	selectedSlow:boolean=false
 	selectedCtr:boolean=false

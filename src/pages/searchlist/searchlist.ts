@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, OnInit,  ChangeDetectorRef, NgZone } from '@angular/core';
 import { FormControl } from '@angular/forms'
 import {
   NavController, reorderArray, AlertController, Platform,
@@ -11,7 +11,7 @@ import { Storage } from '@ionic/storage';
 import { Item } from '../../model/item'
 //import { Contents } from '../../model/contents'
 //import { Child } from '../../model/child'
-import { JwtHelper, tokenNotExpired } from 'angular2-jwt';
+//import { JwtHelper, tokenNotExpired } from 'angular2-jwt';
 
 import { CommonUtils } from '../../utils/common-utils';
 import { RecordUtils } from '../../utils/record-utils';
@@ -29,7 +29,6 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 //import { VirtualScrollModule, VirtualScrollComponent } from 'angular2-virtual-scroll';
 
 import { VirtualListComponent } from 'angular-virtual-list';
-//import { MenuController } from 'ionic-angular';
 
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
@@ -47,7 +46,7 @@ import { AndroidPermissions } from '@ionic-native/android-permissions';
 
 
 export class SearchListPage implements OnInit {
-  public jwtHelper: JwtHelper = new JwtHelper();
+  //public jwtHelper: JwtHelper = new JwtHelper();
 
   //loginVal = this.params.get('logVals')
   username: string
@@ -86,14 +85,31 @@ export class SearchListPage implements OnInit {
       }>
     }>
   }> = []
-
+  topic: Array<{
+    name: string
+    count?: number
+    subtopic?: Array<{
+      name: string
+      count?: number
+    }>
+  }> = []
+  subtopic?: Array<{
+    name: string
+    count?: number
+  }> = []
+  grammar?: Array<{
+    name: string
+    count?: number
+  }> = []
 
 
   scrollItems: Array<Item> = [];
   filteredList: Array<Item> = [];
   items$ = new BehaviorSubject<Array<Item>>(null);
+  zone = new NgZone({ enableLongStackTrace: false })
 
   @ViewChild("audio") audio;
+  
   @ViewChild(VirtualListComponent)
   private virtualList: VirtualListComponent;
 
@@ -106,7 +122,7 @@ export class SearchListPage implements OnInit {
   isViewAll = true
   isPlayList = false
   indices?: any
-  lessonTitles: string
+  filterTitles: string
 
   lastCorrect: any
   lastIncorrect: any
@@ -184,7 +200,15 @@ export class SearchListPage implements OnInit {
           })
           this.db.get(site + "menu").then((menu) => {
             this.lessonMenu = menu
+            // needed to call the events for the menu lessons
             this.filterItems()
+          })
+          this.db.get(site + "grammar").then((grammar) => {
+            this.grammar = grammar
+          })
+          this.db.get(site + "topic").then((topic) => {
+            this.topic = topic
+
           })
 
         });
@@ -203,14 +227,88 @@ export class SearchListPage implements OnInit {
     })
     this.searchControl = new FormControl()
   }
+  callback
+  ionViewDidLoad() {
+
+    this.getSearchItems();
+    this.searchControl.valueChanges.debounceTime(700).subscribe(search => {
+      //this.searching = false;
+      this.shouldShowCancel = true
+      this.getSearchItems();
+    });
+    this.events.subscribe('theme:toggle', (theme) => {
+
+      if (theme == "ionic.theme.default") {
+        localStorage.setItem("theme", 'primary')
+        this.theme = "primary"
+      } else {
+        localStorage.setItem("theme", theme)
+      }
+    });
+    this.speechRecognition.hasPermission()
+      .then((hasPermission: boolean) => {
+
+        if (!hasPermission) {
+          this.speechRecognition.requestPermission()
+            .then(
+
+              () => {
+                console.log('Granted Speech')
+                if (this.platform.is("android")) {
+                  this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE)
+                  console.log('Grant permission write')
+
+                  this.androidPermissions.requestPermissions(this.androidPermissions.PERMISSION.RECORD_AUDIO)
+                  // this.recObject.stopRecord()
+                  console.log('Grant permission rec ')
+                }
+              }
+              ,
+              () => console.log('Denied')
+            )
+        }
+      });
+    this.db.get("latestSiteName").then(site => {
+      this.siteName = site
+      this.flag = localStorage.getItem("cc")
+      this.db.get(site).then((items) => {
+        this.allItems = items
+        this.items = items
+
+        // this.db.get(this.siteName + 'Playlist').then(str => {
+        //   if (str != null) { this.playlists = JSON.parse(str) }
+        // })
+        this.indices = { "start": 0, "end": 6 }
+
+        //this is needed to be able to display initial data
+        this.items$.next(this.items)
+      })
+      this.db.get(site + "menu").then((menu) => {
+        this.lessonMenu = menu
+      })
+      this.db.get(site + "grammar").then((grammar) => {
+        this.grammar = grammar
+      })
+      this.db.get(site + "topic").then((topic) => {
+        this.topic = topic
+
+      })
+    });
+
+  }
+
 
   // for the menu of lessons
   filterItems() {
-    //this.menuCtrl.open();
+    
     this.searchTerm = ""
-    let params = { menu: this.lessonMenu, items: this.allItems, siteName: this.siteName + " - (" + this.allItems.length + ")", isViewAll: false }
+    let params = {
+      menu: this.lessonMenu, grammar: this.grammar, topic: this.topic, items: this.allItems,
+      siteName: this.siteName + " - (" + this.allItems.length + ")", isViewAll: false
+    }
     this.events.publish('params:callback', params, this.filterCallbackFunction);
   }
+
   //only being called after selecting from the menu
   filterCallbackFunction = (params) => {
     return new Promise((resolve, reject) => {
@@ -219,15 +317,19 @@ export class SearchListPage implements OnInit {
       this.lastIncorrect = this.params.lastIncorrect
       this.noRecording = this.params.noRecording;
       this.items = this.params.items
-      this.items$.next(this.items)
+      this.items$.next(this.params.items)
+     
       //to be used for display of footerfilteri
       this.lessonItems = this.params.items
       this.opts = 'search'
       this.isViewAll = this.params.isViewAll
       this.isPlayList = this.params.isPlayList
       if (this.items.length > 0) {
-        this.lessonTitles = this.items[0].lesson + ' ' + this.items[0].lessonId + '  ' + this.items[0].sublesson + ' ' + this.items[0].sublessonId
+        this.filterTitles = this.params.filterTitle
+        // this.items[0].lesson + ' ' + this.items[0].lessonId + '  ' + this.items[0].sublesson + ' ' + this.items[0].sublessonId
       }
+      this.virtualList.refreshList()
+     
       resolve();
     });
   }
@@ -276,47 +378,6 @@ export class SearchListPage implements OnInit {
 
   }
 
-  ionViewDidLoad() {
-
-    this.getSearchItems();
-    this.searchControl.valueChanges.debounceTime(700).subscribe(search => {
-      //this.searching = false;
-      this.shouldShowCancel = true
-      this.getSearchItems();
-    });
-    this.events.subscribe('theme:toggle', (theme) => {
-
-      if (theme == "ionic.theme.default") {
-        localStorage.setItem("theme", 'primary')
-        this.theme = "primary"
-      } else {
-        localStorage.setItem("theme", theme)
-      }
-    });
-    this.speechRecognition.hasPermission()
-      .then((hasPermission: boolean) => {
-
-        if (!hasPermission) {
-          this.speechRecognition.requestPermission()
-            .then(
-
-              () => {
-                console.log('Granted Speech')
-                if (this.platform.is("android")) {
-                  this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.WRITE_EXTERNAL_STORAGE)
-                  console.log('Grant permission write')
-
-                  this.androidPermissions.requestPermissions(this.androidPermissions.PERMISSION.RECORD_AUDIO)
-                  // this.recObject.stopRecord()
-                  console.log('Grant permission rec ')
-                }
-              }
-              ,
-              () => console.log('Denied')
-            )
-        }
-      });
-  }
 
 
   searching: any
@@ -676,6 +737,7 @@ export class SearchListPage implements OnInit {
   getLanguages() {
 
     // will use a callback to update info
+    // needed to clear memory so that side menu will work
     this.nav.push(LanguagePage, { lang: this.getLangCallbackFunction });
   }
 
@@ -684,37 +746,48 @@ export class SearchListPage implements OnInit {
   getLangCallbackFunction = (items?) => {
     return new Promise((resolve, reject) => {
       //this.ngOnInit()
-      this.db.get("latestSiteName").then(site => {
-        this.siteName = site
-        this.flag = localStorage.getItem("cc")
-        // this.db.get(this.siteName + 'Playlist').then(str => {
-        //   if (str != null) { this.playlists = JSON.parse(str) }
-        // })
-        this.indices = { "start": 0, "end": 6 }
-        this.db.get(site + "menu").then((menu) => {
-          this.lessonMenu = menu
-          this.filterItems()
+      this.zone.run(() => {
+        this.db.get("latestSiteName").then(site => {
+          this.siteName = site
+          this.flag = localStorage.getItem("cc")
+          // this.db.get(this.siteName + 'Playlist').then(str => {
+          //   if (str != null) { this.playlists = JSON.parse(str) }
+          // })
+          this.indices = { "start": 0, "end": 6 }
+          this.db.get(site + "menu").then((menu) => {
+            this.lessonMenu = menu
+            this.filterItems()
+          })
+          this.db.get(site + "grammar").then((grammar) => {
+            this.grammar = grammar
+            this.filterItems()
+          })
+          this.db.get(site + "topic").then((topic) => {
+            this.topic = topic
+            this.filterItems()
+          })
+
+          this.items$.next(items)
+          this.items = []
+          this.items = items
+          this.allItems = items
+          this.isViewAll = true
+          this.opts = 'search'
+          this.searchTerm = ""
+
+          this.db.get('rtl').then(val => {
+            if (val) {
+              this.rtl = 'rtl'
+            } else {
+              this.rtl = "ltr"
+            }  //      this.changeLanguage()
+          })
+        }).catch((err) => {
+          console.log("call err " + err)
         })
 
-        this.items$.next(items)
-        this.items = items
-        this.allItems = items
-        this.isViewAll = true
-        this.opts = 'search'
-        this.searchTerm = ""
-        this.virtualList.refreshList()
-        this.db.get('rtl').then(val => {
-          if (val) {
-            this.rtl = 'rtl'
-          } else {
-            this.rtl = "ltr"
-          }  //      this.changeLanguage()
-        })
-      }).catch((err) => {
-        console.log("call err " + err)
+        resolve();
       })
-
-      resolve();
     });
   }
 
@@ -770,7 +843,7 @@ export class SearchListPage implements OnInit {
       let filteritems = this.items.filter((item) => {
         return (item.isAddPlaylist)
       })
-      if (filteritems.length == 1) this.utils.presentToast('Selected item added to Playlist.', 1500)
+      if (filteritems.length == 1) this.utils.presentToast('Selected item added to Study list.', 1500)
       //  this.utils.addItem(this.tempPlaylists, item)
     } else {
       item.isAddPlaylist = false
@@ -862,18 +935,41 @@ export class SearchListPage implements OnInit {
   showCreateQuiz() {
     // this.nav.push(QuizPage, { items: this.items})
     this.db.set("items", this.items)
+    this.db.set("quizSection", this.filterTitles)
+    // this.db.get("items").then((items) => {
+    //   this.items = items
+    //   this.items$.next(items)
+    // })
+    // this.quizParams = {
+    //   'quizSection':this.filterTitles,"quizItems":this.items}
   }
 
   segmentChanged(event) {
     if (event.value == 'quizfill' || event.value == 'mixmatch' || event.value == 'quizdrop') {
       this.showCreateQuiz()
     } else if (event.value == 'quiztrans') {
-      this.showCreateQuiz()
-    } else {
+      // this.showCreateQuiz()
+    } else if (event.value == 'search') {
+      
+      this.db.get("items").then((items) => {
+        this.items = items
+        //combine 2 arrays
+        this.allItems.map(x => Object.assign(x, items.find(y => y.id == x.id)));
+
+        this.items$.next(items)
+      })
     }
 
   }
 
+  // quizParams:any
+
+  // quizCallbackFunction = (_params) => {
+  //   return new Promise((resolve, reject) => {
+  //     this.params = _params;
+  //      resolve();
+  //   });
+  // }
   // little animation
   myAnime(myString) {
     let myArray = myString.split("");

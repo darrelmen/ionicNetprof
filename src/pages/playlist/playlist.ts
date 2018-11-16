@@ -8,7 +8,7 @@ import { RecordPage } from '../../pages/record/record';
 import { Item } from '../../model/item'
 import { Media, MediaObject, MEDIA_STATUS } from '@ionic-native/media'
 import { File, FileEntry } from '@ionic-native/file';
-import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer';
+//import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer';
 
 
 @Component({
@@ -36,7 +36,7 @@ export class PlaylistPage {
     public platform: Platform,
     public nav: NavController,
     public file: File,
-    public txfr: FileTransfer,
+ //   public txfr: FileTransfer,
     private audio: Media
   ) {
 

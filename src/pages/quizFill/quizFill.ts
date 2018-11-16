@@ -19,11 +19,15 @@ export class QuizFillPage {
 	testItems = 10
 	testMax: number
 	slideOptions: any;
-	public questions: Array<Question> = []
+	quizSection: string = ''
+	questions: Array<Question> = []
 	url: string
 	items: Array<Item>;
+	
 	constructor(public navCtrl: NavController, public db: Storage, public recUtils: RecordUtils, public utils: CommonUtils) {
+
 		this.db.get("items").then((items: Array<Item>) => {
+			this.items = []
 			this.items = items
 			if (items.length > 100) {
 				this.testMax = 100
@@ -36,12 +40,39 @@ export class QuizFillPage {
 			console.log("latest " + site)
 			this.siteName = site
 		})
+		this.db.get("quizSection").then((quiz) => this.quizSection = quiz)
+
+
 		this.theme = localStorage.getItem("theme")
 		if (this.theme == null) this.theme = "primary"
 	}
 	theme: string
 
+	ionViewWillEnter() {
+			this.db.get("items").then((items: Array<Item>) => {
+				this.items = []
+				this.items = items
+				if (items.length > 100) {
+					this.testMax = 100
+				} else {
+					this.testMax = items.length
+				}
+				console.log(" items length " + this.items.length)
+				this.db.get("url").then((url) => this.url = url)
+			})
+			this.db.get("latestSiteName").then((site) => {
+				console.log("latest " + site)
+				this.siteName = site
+			})
+			this.db.get("quizSection").then((quiz) => this.quizSection = quiz)
+
+
+	}
+
 	ionViewDidLoad() {
+
+		this.theme = localStorage.getItem("theme")
+		if (this.theme == null) this.theme = "primary"
 		this.slides.lockSwipes(true);
 		this.slides.lockSwipeToNext(true)
 	}
@@ -97,7 +128,7 @@ export class QuizFillPage {
 			q.flashCardBack = item.fl
 			q.flashCardBackEng = item.en
 			q.flashCardAudio = item.frr
-
+			q.item = item
 			let answers: Array<Answer> = []
 			if (this.quizType == "context") {
 				let ct = item.ct.toUpperCase().trim().replace("’", "'")
@@ -141,10 +172,32 @@ export class QuizFillPage {
 		} else {
 			this.btnLang = "English"
 		}
-		if(this.quizType=="vocab") {
+		if (this.quizType == "vocab") {
 			this.randomQuiz(this.questions)
 		}
 	}
 
-	
+	addPlaylist() {
+
+		this.questions.forEach((q) => {
+			this.items.filter(x => {
+				if (x.id == q.id) {
+					x.isAddPlaylist = true
+				}
+			})
+
+		})
+		this.db.set("items", this.items)
+		this.utils.presentToast('Quiz list added to Study list.', 1500)
+	}
+
+
+	sendEmail() {
+
+		let data = {
+			email: '', subject: this.quizSection,quizType:"quizfill", body: this.questions, html: false,
+			username: localStorage.getItem('username'), siteName: this.siteName, score: this.score
+		}
+		this.utils.sendEmail(data)
+	}
 }

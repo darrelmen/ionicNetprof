@@ -41,7 +41,8 @@ export class DropPage {
                 } else {
                     this.testMax = items.length
                 }
-               this.items=items
+                this.items=[]
+                this.items=items
                 this.siteName = site
             })
         })
@@ -50,6 +51,20 @@ export class DropPage {
     theme:string
 
     ionViewCanEnter() {
+        this.db.get("latestSiteName").then((site) => {
+            this.db.get("items").then((items: Array<Item>) => {
+
+                if (items.length > 100) {
+                    this.testMax = 100
+                } else {
+                    this.testMax = items.length
+                }
+                this.items=[]
+                this.items=items
+                this.siteName = site
+            })
+        })
+      this.theme=localStorage.getItem("theme")      
         this.questions=[]
       }
 
@@ -94,7 +109,7 @@ export class DropPage {
             }else if (this.siteName == "Japanese"){
                 wordsRandom = this.utils.randomizeItems(item.fl.split(''))
             } else {
-                wordsRandom = this.utils.randomizeItems(item.ct.split(" "))
+                wordsRandom = this.utils.randomizeItems(item.ct.toUpperCase().split(" "))
             }
             for (let item of wordsRandom) {
                 let ans: Answer = new Answer()
@@ -109,9 +124,9 @@ export class DropPage {
 
         }
         if(this.questions.length==0) {
-            this.utils.presentToast("NO context sentences for level " + levelName + " !",2000)
+            this.utils.presentToast("No context sentences for level " + levelName + " !",2000)
         }else {
-        let params={questions:this.questions,testLevel:this.testLevel,testItems:this.testItems,siteName:this.siteName}
+        let params={items:this.items,questions:this.questions,testLevel:this.testLevel,testItems:this.testItems,siteName:this.siteName}
         this.navCtrl.push(DropQuizPage,{params:params})
         }
        

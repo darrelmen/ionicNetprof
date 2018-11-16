@@ -5,15 +5,14 @@ import { RecordUtils } from '../../utils/record-utils';
 import { AuthService } from '../../providers/auth-service/auth-service';
 //import { RecordUtils } from '../../utils/record-utils'
 import { File } from '@ionic-native/file';
-import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-native/file-transfer';
+//import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-native/file-transfer';
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 
 import { Media, MediaObject } from '@ionic-native/media';
 import { Item } from '../../model/item'
-
 import Highcharts from 'highcharts';
 import More from 'highcharts/highcharts-more';
-
+import { HTTP } from '@ionic-native/http'
 More(Highcharts);
 
 
@@ -32,11 +31,12 @@ More(Highcharts);
 })
 
 
+
+
 export class RecordPage {
   items: Array<Item> = []
   allItems: Array<Item> = []
   sliceItems: number = 20
-
   url: string
   siteName: string
   item: Item
@@ -77,7 +77,8 @@ export class RecordPage {
     public recFile: Media,
     public auth: AuthService,
     public recUtils: RecordUtils,
-    public transfer: FileTransfer,
+    // public transfer: FileTransfer,
+    public httpNative: HTTP,
     public file: File,
     private androidPermissions: AndroidPermissions) {
 
@@ -138,43 +139,49 @@ export class RecordPage {
       );
     }
   }
-  
+
   ionViewWillEnter() {
     this.callback = this.navParam.get("callback")
   }
   close() {
-    var lesson;
-    if (this.item.sublesson == "" || this.item.sublesson == undefined) {
-      lesson = this.item.lesson + "=" + this.item.lessonId
-    } else {
-      lesson = this.item.lesson + "=" + this.item.lessonId + "&" + this.item.sublesson + "=" + this.item.sublessonId
-    }
-    //make sure autoplay is stop before moving to the next page
-    if (this.isAutoPlay) this.stopAutoPlay()
-    // check to avoid unecessary processing /server call
-    if (this.didRecording) {
-      //this.auth.getScores(lesson).subscribe((lessonScores: any) => {
-      // for deployment   
-      this.auth.getScores(lesson).then((lessonScores: any) => {
+    try {
+      var lesson;
+      if (this.item.sublesson == "" || this.item.sublesson == undefined) {
+        lesson = this.item.lesson + "=" + this.item.lessonId
+      } else {
+        lesson = this.item.lesson + "=" + this.item.lessonId + "&" + this.item.sublesson + "=" + this.item.sublessonId
+      }
+      //make sure autoplay is stop before moving to the next page
+      if (this.isAutoPlay) this.stopAutoPlay()
+      // check to avoid unecessary processing /server call
+      if (this.didRecording) {
+        //this.auth.getScores(lesson).subscribe((lessonScores: any) => {
+        // for deployment   
+        this.auth.getScores(lesson).then((lessonScores: any) => {
 
-        //filtered vs non filtered selection for the updated scores
-        if (lessonScores.scores.length > 0) {
-          //this is how to combine 2 arrays with matching ids
-          this.items = this.items.map(x => Object.assign(x, lessonScores.scores.find(y => y.ex == x.id)));
-        } else {
-          this.items = this.allItems.map(x => Object.assign(x, this.items.find(y => y.id == x.id)));
-        }
+          //filtered vs non filtered selection for the updated scores
+          if (lessonScores.scores.length > 0) {
+            //this is how to combine 2 arrays with matching ids
+            this.items = this.items.map(x => Object.assign(x, lessonScores.scores.find(y => y.ex == x.id)));
+          } else {
+            this.items = this.allItems.map(x => Object.assign(x, this.items.find(y => y.id == x.id)));
+          }
 
-        let lastCorrect = lessonScores.lastCorrect
-        let lastIncorrect = lessonScores.lastIncorrect
-        let noRecording = this.allItems.length - Number(lastCorrect) - Number(lastIncorrect)
+          let lastCorrect = lessonScores.lastCorrect
+          let lastIncorrect = lessonScores.lastIncorrect
+          let noRecording = this.allItems.length - Number(lastCorrect) - Number(lastIncorrect)
 
-        this.params = this.params = { items: this.items, lastCorrect: lastCorrect, lastIncorrect: lastIncorrect, noRecording: noRecording }
-        this.callback(this.params).then(() => {
-          this.nav.popToRoot();
+          this.params = this.params = { items: this.items, lastCorrect: lastCorrect, lastIncorrect: lastIncorrect, noRecording: noRecording }
+          this.callback(this.params).then(() => {
+            this.nav.popToRoot();
+          }).catch(() => {
+            this.nav.popToRoot();
+          })
         })
-      })
-    } else {
+      } else {
+        this.nav.popToRoot();
+      }
+    } catch (error) {
       this.nav.popToRoot();
     }
   }
@@ -193,57 +200,58 @@ export class RecordPage {
     this.slider.centeredSlides = true;
   }
 
-  downloadMultipleAudio() {
-    this.items.forEach((item) => {
-      console.log(" test" + this.file.dataDirectory + this.siteName + "/bestAudio/" + item.id)
-      this.file.checkDir(this.file.dataDirectory, this.siteName + "/bestAudio/" + item.id)
-        .then((isExist) => {
-          if (isExist) {
-          } else {
-            console.log("is not exist  " + item.fl)
-            this.downloadAudio(item.mrr)
-          }
-        })
-        .catch(() => {
-          console.log("copy audio ")
-          this.downloadAudio(item.mrr)
-        });
+  // downloadMultipleAudio() {
+  //   this.items.forEach((item) => {
+  //     console.log(" test" + this.file.dataDirectory + this.siteName + "/bestAudio/" + item.id)
+  //     this.file.checkDir(this.file.dataDirectory, this.siteName + "/bestAudio/" + item.id)
+  //       .then((isExist) => {
+  //         if (isExist) {
+  //         } else {
+  //           console.log("is not exist  " + item.fl)
+  //           this.downloadAudio(item.mrr)
+  //         }
+  //       })
+  //       .catch(() => {
+  //         console.log("copy audio ")
+  //         this.downloadAudio(item.mrr)
+  //       });
 
-      this.file.checkDir(this.file.dataDirectory + this.siteName + "/bestAudio", item.id)
-        .then((isExist) => {
-          if (isExist) {
-          } else {
-            console.log("is exist  " + item.ct)
-            this.downloadAudio(item.ctmref)
-          }
-        }).catch(() => {
-          console.log("copy audio ")
-          this.downloadAudio(item.ctmref)
-        });
-    })
-  }
+  //     this.file.checkDir(this.file.dataDirectory + this.siteName + "/bestAudio", item.id)
+  //       .then((isExist) => {
+  //         if (isExist) {
+  //         } else {
+  //           console.log("is exist  " + item.ct)
+  //           this.downloadAudio(item.ctmref)
+  //         }
+  //       }).catch(() => {
+  //         console.log("copy audio ")
+  //         this.downloadAudio(item.ctmref)
+  //       });
+  //   })
+  // }
 
-  downloadAudio(audio) {
-    this.platform.ready().then(() => {
-      const fileTransfer: FileTransferObject = this.transfer.create();
-      var audioLocation = this.url + "/" + audio;
-      this.file.checkDir(this.file.dataDirectory, this.siteName).then((isExist) => {
-        fileTransfer.download(audioLocation, this.file.dataDirectory + this.siteName + "/" + audio).then((entry) => { }
-          , (error) => {
-            console.log("download  " + error)
-          });
+  // downloadAudio(audio) {
+  //   this.platform.ready().then(() => {
+  //    // const fileTransfer: FileTransferObject = this.transfer.create();
+  //     var audioLocation = this.url + "/" + audio;
+  //     this.file.checkDir(this.file.dataDirectory, this.siteName).then((isExist) => {
+  //       this.httpNative.downloadFile({},audioLocation, this.file.dataDirectory + this.siteName + "/" + audio).then((entry) => { }
 
-      }).catch(() => {
-        this.file.createDir(this.file.dataDirectory, this.siteName, true).then((val) => {
-          console.log("create dowload  " + this.file.dataDirectory, this.siteName)
-          fileTransfer.download(audioLocation, this.file.dataDirectory + this.siteName + "/" + audio).then((entry) => { }
-            , (error) => {
-              console.log("dowload  " + error)
-            });
-        })
-      })
-    });
-  }
+  //         , (error) => {
+  //           console.log("download  " + error)
+  //         });
+
+  //     }).catch(() => {
+  //       this.file.createDir(this.file.dataDirectory, this.siteName, true).then((val) => {
+  //         console.log("create dowload  " + this.file.dataDirectory, this.siteName)
+  //         fileTransfer.download(audioLocation, this.file.dataDirectory + this.siteName + "/" + audio).then((entry) => { }
+  //           , (error) => {
+  //             console.log("dowload  " + error)
+  //           });
+  //       })
+  //     })
+  //   });
+  // }
 
 
   man(item, id) {
@@ -368,7 +376,6 @@ export class RecordPage {
             //this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.RECORD_AUDIO).then(
             //result => {
             //   console.log('Has permission?', result.hasPermission)
-            this.recObject.startRecord();
 
             //this.recObject.onSuccess.subscribe(() => {
 
@@ -382,6 +389,8 @@ export class RecordPage {
             this.isRecord = true
             this.didRecording = true
             this.slider.lockSwipes(true);
+            this.recObject.startRecord();
+
             console.log(" start record succ has per " + dir + filename)
             //  })
             //  this.recObject.onError.subscribe(error => {
@@ -409,7 +418,7 @@ export class RecordPage {
             // });
             // }
           });
-       
+
         }).catch(() => {
           this.file.createDir(bestAudioDir, this.siteName, false).then((val) => {
             this.file.createFile(dir, filename, true).then(() => {
@@ -475,54 +484,66 @@ export class RecordPage {
       this.recObject.stopRecord()
       let filename = item.id + "_rec.wav"
       let filePath = bestAudioDir + this.siteName + "/"
-     // let ft: FileTransferObject = this.transfer.create();
+      // let ft: FileTransferObject = this.transfer.create();
       this.isSpinner = false
 
       if (this.platform.is("android")) {
         this.recObject.release()
       }
       this.file.resolveLocalFilesystemUrl(filePath + filename).then(fe => {
-        this.file.readAsBinaryString(filePath, filename).then((dir) => {
+        console.log(" feed 1 int " + fe.toInternalURL())
 
-          this.auth.postRecording(fe.toURL(), item.id, dir.length.toString(), filename)
-            .then((test) => {
-              //this.isSpinner = false
-              // only execute this if 
-              if (test.valid == "OK") {
-                item.s = (test.score * 100).toFixed(0)
-                if (test.isCorrect) {
-                  item.h.push('Y')
-                } else {
-                  item.h.push('N')
-                }
-                item.scores.push(test.score)
-                // this.createElement("recordFl" + item.id, test.WORD_TRANSCRIPT)
-                this.createElement("recordPh" + item.id, test.PHONE_TRANSCRIPT)
 
-                //document.getElementById("recordPh" + item.id).hidden = false
-                //document.getElementById("recordPh" + item.id).focus()
-                this.scoreGauge(parseInt(item.s), item.id)
-                this.playRecord(item)
-                console.log(" test score " + test.score)
-              } else if (test.valid == "TOO_LOUD") {
-                this.utils.showAlert("","Recording too loud.", "Please adjust your microphone and try again ... ")
-              } else if (test.valid == "TOO_SHORT") {
-                this.utils.showAlert("","Recording too short.", "Please try again ... ")
+        //    this.file.readAsDataURL(filePath, filename).then((dir) => {
+        // console.log(" feeed 1 nat " + fe.nativeURL) 
+        //      console.log(" feeed 1 nat " + dir) 
+        //    // var blob = new Blob([new Uint8Array(dir)], { type: "audio/wav" });
+        let fileup = fe.toURL()
+        //   if (this.platform.is("ios")) {
+        //fileup=fe.nativeURL.substring(7,fe.nativeURL.length)
+        fileup = normalizeURL(fe.toURL())
+        //  }
+        this.auth.postRecording(fileup, item.id, filename)
+          .then((test) => {
+            //this.isSpinner = false
+            // only execute this if 
+            if (test.valid == "OK") {
+              item.s = (test.score * 100).toFixed(0)
+              if (test.isCorrect) {
+                item.h.push('Y')
+              } else {
+                item.h.push('N')
               }
-              this.slider.lockSwipes(false);
+              item.scores.push(test.score)
+              // this.createElement("recordFl" + item.id, test.WORD_TRANSCRIPT)
+              this.createElement("recordPh" + item.id, test.PHONE_TRANSCRIPT)
 
-            }).catch((error) => {
-              // this.isSpinner = false
-              this.slider.lockSwipes(false);
-              console.error(" Error postRecord " + error)
-            })
-        }).catch((error) => {
-          // this.isSpinner = false
-          this.slider.lockSwipes(false);
-          console.error("Error scoring recording..." + error)
-        }
-        )
-      })
+              //document.getElementById("recordPh" + item.id).hidden = false
+              //document.getElementById("recordPh" + item.id).focus()
+              this.scoreGauge(parseInt(item.s), item.id)
+              this.playRecord(item)
+              console.log(" test score " + test.score)
+            } else if (test.valid == "TOO_LOUD") {
+              this.utils.showAlert("", "Recording too loud.", "Please adjust your microphone and try again ... ")
+            } else if (test.valid == "TOO_SHORT") {
+              this.utils.showAlert("", "Recording too short.", "Please try again ... ")
+            } else if (test.valid == "SNR_TOO_LOW") {
+              this.utils.showAlert("", "Recording volume too low.", "Please try again ... ")
+            }
+            this.slider.lockSwipes(false);
+
+          }).catch((error) => {
+            // this.isSpinner = false
+            this.slider.lockSwipes(false);
+            console.error(" Error postRecord " + error)
+          })
+      }).catch((error) => {
+        // this.isSpinner = false
+        this.slider.lockSwipes(false);
+        console.error("Error scoring recording..." + error)
+      }
+      )
+      //   })
     }
 
   }

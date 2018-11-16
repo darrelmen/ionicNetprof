@@ -3,7 +3,7 @@ import { Injectable, ViewChild } from '@angular/core'
 import { CommonUtils } from './common-utils'
 import { Media, MediaObject } from '@ionic-native/media'
 import { File, FileEntry } from '@ionic-native/file';
-import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer';
+//import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
 import { Storage } from '@ionic/storage';
 import { HTTP } from '@ionic-native/http'
@@ -21,7 +21,7 @@ export class RecordUtils {
     private newMedia: Media,
 
     public file: File,
-    public txfr: FileTransfer,
+   // public txfr: FileTransfer,
     private tts: TextToSpeech,
     public db: Storage,
     public httpNative: HTTP
@@ -67,6 +67,39 @@ export class RecordUtils {
 
   }
 
+  playCheckQuiz(correct:boolean){
+    let song: MediaObject = null
+    let src=''
+    if (correct) {
+      src="assets/sounds/Correct.wav"
+    } else {
+      src="assets/sounds/Incorrect.wav"
+    }
+    console.log("success play not " + src)
+    if (this.platform.is('ios') || this.platform.is('ipad') || this.platform.is("iphone")) {
+      // console.log("fe to int url " + fe.toInternalURL())
+      song = this.audio.create(src);
+      song.play({ numberOfLoops: 1 });
+      console.log("success play " + src)
+    } else {
+      song = this.audio.create(src);
+      //for android needed to release first before play
+      console.log("success play " + src)
+      song.play();
+    }
+    song.setVolume(1.0)
+    // this.showHighlights(song,id,item)
+    song.onError.subscribe((err) => console.log('Play Error ' + err.toString(1)));
+
+    song.onSuccess.subscribe(() => {
+    song.release()
+    },
+      err => {
+        console.log("Audio Play Error " + JSON.stringify(err));
+      }
+    );
+  
+  }
 
   playMobile(url: string, audio?: any) {
     let bestAudioDir = this.checkPlatform()
@@ -94,7 +127,11 @@ export class RecordUtils {
             sound = this.audio.create(fe.toURL());
             sound.play();
           }
-
+          // var mediaTimer = setInterval(()=> {
+          //   sound.getCurrentPosition().then((pos)=>{
+          //     console.log("duration pos " + pos)
+          //   })
+          // },400)
           sound.setVolume(1.0)
           //this.showHighlights(sound,id,item)
           sound.onSuccess.subscribe((dur) => {
@@ -102,18 +139,21 @@ export class RecordUtils {
             //if (this.audio.MEDIA_STOPPED) {
             // to return the the value of the duration 
             // this is the only way to get the duration on until i can figure how to do a chain promise
+            
             let duration = (sound.getDuration() * 1000).toFixed(0).toString()
+           // console.log("duration " + duration)
             localStorage.setItem("duration", duration)
             sound.release()
           })
         }).catch(() => {  // when audio is not saved yet, get from url and download file
-          let ft: FileTransferObject = this.txfr.create();
+         // let ft: FileTransferObject = this.txfr.create();
           let siteId: string = localStorage.getItem('siteid')
           console.log("site " + this.siteName)
           console.log("site " + audioName)
           this.file.checkDir(bestAudioDir, this.siteName + "BestAudio").then((isExist) => {
             this.httpNative.setDataSerializer('urlencoded');
-            this.httpNative.acceptAllCerts(true)
+            //this.httpNative.acceptAllCerts(true)
+            this.httpNative.setSSLCertMode("nocheck")
             this.httpNative.downloadFile(url, {}, { "Content-Type": "application/x-www-form-urlencoded", "projid": siteId },
               bestAudioDir + this.siteName + "BestAudio/" + audioName)
               .then((data) => {
@@ -153,7 +193,8 @@ export class RecordUtils {
 
               console.log("dire " + dirEntry.toURL() + audioName)
               this.httpNative.setDataSerializer('urlencoded');
-              this.httpNative.acceptAllCerts(true)
+              this.httpNative.setSSLCertMode("nocheck")
+              //this.httpNative.acceptAllCerts(true)
               this.httpNative.downloadFile(url, {}, { "Content-Type": "application/x-www-form-urlencoded", "projid": siteId },
                 bestAudioDir + this.siteName + "BestAudio/" + audioName)
                 .then((data) => {
@@ -179,7 +220,7 @@ export class RecordUtils {
 
                   song.onSuccess.subscribe(() => {
                     console.log('Save new audio file ' + (song.getDuration() * 1000).toFixed())
-
+                    
                     let duration = (song.getDuration() * 1000).toFixed(0).toString()
                     localStorage.setItem("duration", duration)
                     song.release()
@@ -224,7 +265,8 @@ export class RecordUtils {
         }).catch(() => {  // when audio is not saved yet, get from url and download file
           
           this.httpNative.setDataSerializer('urlencoded');
-          this.httpNative.acceptAllCerts(true)
+          this.httpNative.setSSLCertMode("nocheck")
+          //this.httpNative.acceptAllCerts(true)
           this.httpNative.downloadFile(url, {}, { "Content-Type": "application/x-www-form-urlencoded", "projid": siteId },
             bestAudioDir + this.siteName + "BestAudio/" + audioName)
             .then((data) => {

@@ -5,6 +5,7 @@ import { CommonUtils } from '../../utils/common-utils'
 import { Storage } from '@ionic/storage';
 import { Sites } from '../../model/sites'
 import { SearchListPage } from '../searchlist/searchlist';
+import { MenuItemsPage } from '../menuitems/menuitems';
 
 @Component({
   templateUrl: 'language.html',
@@ -23,7 +24,7 @@ export class LanguagePage {
     public utils: CommonUtils,
     public db: Storage,
     public platform: Platform,
-    private navParam: NavParams
+    private navParam: NavParams,
     // public emailComposer: EmailComposer
   ) {
    
@@ -73,10 +74,10 @@ export class LanguagePage {
             this.db.set("latestSiteName", site.language)
             localStorage.setItem("cc", site.countrycode)
             localStorage.setItem("siteid", site.id)
+            console.log("site lang " + site.language)
             this.db.get(site.language).then(items => {
               this.callbackLang(items).then(() => {
-                this.nav.popToRoot();
-                //this.nav.push(MenuItemsPage)
+                 this.nav.push(MenuItemsPage)
               }).catch((err) => { console.log(err) })
             })
           })
@@ -94,6 +95,7 @@ export class LanguagePage {
     // this.url = this.logform.value.url
     //   let siteName=this.url.split("https://np.ll.mit.edu/",2)
     this.auth.load(site).then(
+     // this.auth.load(site).subscribe(
       //for deployment 
       //this.auth.load(this.logform.value.site).then(
 
@@ -107,8 +109,7 @@ export class LanguagePage {
           loading.dismiss();
           // populate the items with new lang
           this.callbackLang(items).then(() => {
-            this.nav.popToRoot();
-            // this.nav.push(MenuItemsPage)
+            this.nav.push(MenuItemsPage)
           }).catch((err) => { console.log(err) })
         })
       },

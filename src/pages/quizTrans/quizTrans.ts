@@ -184,8 +184,12 @@ export class QuizTransPage {
 		}
 
 		this.utils.presentToast(words, 2000)
+		this.db.get("url").then((url) => {
+            this.recUtils.downPlay(url + "/" + words)
+        })
 	}
 
+	
 	// context(item, id, event?) {
 	// 	if (item.ctmref == "NO") {
 	// 		this.utils.showAlert("", "Audio not Found!", "There is no audio recording for : " + item.ct)

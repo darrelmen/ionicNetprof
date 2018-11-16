@@ -1,11 +1,14 @@
 import { Component, OnInit, ViewChild, Renderer } from '@angular/core';
-import { NavController, ActionSheetController, AlertController, LoadingController, Platform } from 'ionic-angular';
+import { NavController, ActionSheetController, AlertController, LoadingController, Platform, ToastController } from 'ionic-angular';
 import { AuthService } from '../../providers/auth-service/auth-service';
 //import {LanguageService} from '../../providers/language-service/language-service'
 import { CommonUtils } from '../../utils/common-utils'
 import { Storage } from '@ionic/storage';
-import { MenuItemsPage} from '../../pages/menuitems/menuitems';
-import { Sites} from '../../model/sites'
+import { MenuItemsPage } from '../../pages/menuitems/menuitems';
+import { Sites } from '../../model/sites'
+import { tap } from 'rxjs/operators'
+
+//import { FcmProvider } from '../../providers/fcm/fcm';
 import {
   FormGroup,
   FormControl,
@@ -27,6 +30,8 @@ export class LoginPage implements OnInit {
   sites: any;
   url: string
   selected_site: any = 'site'
+  passwd = ""
+  username = ""
   // signform: any;
   constructor(public auth: AuthService,
     // public language: LanguageService,
@@ -37,15 +42,35 @@ export class LoginPage implements OnInit {
     public renderer: Renderer,
     public utils: CommonUtils,
     public db: Storage,
-    public platform: Platform
-   // public emailComposer: EmailComposer
+    public platform: Platform,
+    // public fcm: FcmProvider,
+    public toastCtrl: ToastController
+    // public emailComposer: EmailComposer
+
   ) {
     this.platform.ready().then(() => { this.db })
-    this.theme=localStorage.getItem("theme")  
-    
-  }
-  theme:string
+    this.theme = localStorage.getItem("theme")
 
+  }
+  ionViewDidLoad() {
+    // get fcm token
+    // this.fcm.getToken()
+    // this.fcm.listenToNotifications().subscribe(
+    //   tap( msg => {
+    //     const toast = this.toastCtrl.create({
+    //       message:"hello",
+    //       duration: 3000
+    //     })
+    //     toast.present()
+    //   })
+    // )
+
+
+  }
+
+
+  theme: string
+  affiliation: string = "DLIFLC"
   //logform:any
   public logform = new FormGroup({
     'username': new FormControl('', Validators.required), //| Validators.pattern('[a-zA-Z0-9]')),
@@ -65,8 +90,12 @@ export class LoginPage implements OnInit {
   public signform = new FormGroup({
     'username': new FormControl('', Validators.minLength(4)),
     'email': new FormControl('', Validators.email),
-    'pass': new FormControl('', Validators.minLength(4)),
-    'status': new FormControl('', Validators.required)
+    // 'pass': new FormControl('', Validators.minLength(4)),
+    'firstname': new FormControl('', Validators.required),
+    'lastname': new FormControl('', Validators.required),
+    'affiliation': new FormControl('', Validators.required)
+    //  'gender': new FormControl('', Validators.required)
+    //   'status': new FormControl('', Validators.required)
   });
 
   // initialization load on startup
@@ -83,18 +112,27 @@ export class LoginPage implements OnInit {
           .then((val) => {
             this.selected_site = val
             //this.logform.value.selectedSite=this.selected_site
-            console.log('selected Site: ', this.selected_site)
+            console.log('selected Site: ' + this.selected_site)
 
+            //this.username=localStorage.getItem("username")
+            //this.passwd=localStorage.getItem("pass") 
+            this.db.get("rtl").then((rtl)=>{
+            this.logform.setValue({
+              'username': localStorage.getItem("username"), "password": localStorage.getItem("pass"),
+              "site": { 'language': this.selected_site, 'id': localStorage.getItem('siteid'), 
+              rtl:rtl, countrycode: localStorage.getItem("cc") }
+            })
           })
-
+            //   this.logform.setValue({"username":localStorage.getItem("username")})
+          })
         this.db.get('sites')
           .then((val) => {
             if (val == null || val == "") {
-            
+
               this.auth.getSites()
-                //.subscribe(result => {
-                 //for deployment
-                 .then(result => {
+                // .subscribe(result => {
+                //for deployment
+                .then(result => {
                   console.log(" sites upload ")
                   // for mock
                   // this.sites=result[0].sites
@@ -109,7 +147,7 @@ export class LoginPage implements OnInit {
               //this.httpNative.enableSSLPinning(true) 
 
             } else {
-             
+
               this.sites = JSON.parse(val)
               this.sites = this.sites.sort(function (a, b) {
                 return a.language.localeCompare(b.language)
@@ -140,10 +178,10 @@ export class LoginPage implements OnInit {
           text: 'Send Username',
           handler: data => {
             console.log('to send email Saved clicked');
-           // this.auth.forgotUserName(data).subscribe((isValid:any) => {
-               //for deployment
-               this.auth.forgotUserName(data).then((isValid:any) => {
-           
+            // this.auth.forgotUserName(data).subscribe((isValid:any) => {
+            //for deployment
+            this.auth.forgotUserName(data).then((isValid: any) => {
+
               if (isValid.valid) {
                 this.utils.presentToast('Please check your email for your Username.', 2000)
               } else {
@@ -187,13 +225,13 @@ export class LoginPage implements OnInit {
           handler: data => {
             //this.auth.forgotPassword(data).subscribe((isValid:any) => {
             //for deployment 
-            this.auth.forgotPassword(data).then((isValid:any) => {
-           
+            this.auth.forgotPassword(data).then((isValid: any) => {
+
               if (isValid.token == "PASSWORD_EMAIL_SENT") {
                 this.utils.presentToast('Please check your email to reset Password.', 2000)
               } else {
                 this.utils.presentToast('Please enter valid username/email address.', 2000)
-              }       
+              }
             })
           }
         }, {
@@ -205,7 +243,7 @@ export class LoginPage implements OnInit {
     });
     prompt.present();
   }
-  
+
   // currently not used
   statusActionSheet() {
     let actionSheet = this.actionSheetCtrl.create({
@@ -235,7 +273,7 @@ export class LoginPage implements OnInit {
 
     actionSheet.present();
   }
- 
+
   login() {
     this.auth.loginMD5(this.logform.value)
 
@@ -246,8 +284,25 @@ export class LoginPage implements OnInit {
         if (result === true) {
 
           this.url = this.logform.value.site.language
+
+          let countryCode = ''
+          let rtl:boolean
+    
+          if (this.logform.value.site.language == null || this.logform.value.site.language == '') {
+            this.db.get('latestSiteName')
+              .then((val) => {
+
+                this.selected_site = val
+              })
+            countryCode = localStorage.getItem("cc")
+            this.db.get("rtl").then((rtl)=>{rtl=rtl } )
+          } else {
+            this.selected_site = this.logform.value.site.language
+            countryCode = this.logform.value.site.countrycode
+            rtl=this.logform.value.site.rtl
+          }
           //let siteName=this.url.split("https://np.ll.mit.edu/npfClassroom",2)
-          this.db.get(this.logform.value.site.language)
+          this.db.get(this.selected_site)
             .then((val) => {
               // this.auth.authenticated(true)
               if (val == null) {
@@ -255,23 +310,55 @@ export class LoginPage implements OnInit {
               } else {
                 //this.language.writeLocal('loginValues',this.logform.value);
                 this.platform.ready().then(() => {
-                  this.db.set("rtl", this.logform.value.site.rtl)
+                  this.db.set("rtl", rtl)
                   //this.db.set('url', this.logform.value.site.url)
                   this.db.set("url", "https://netprof.ll.mit.edu/netprof")
                   this.db.set('username', this.logform.value.username);
                   this.db.set("latestSite", this.logform.value.site)
                   this.db.set("latestSiteName", this.logform.value.site.language)
-                  console.log("rtl " + this.logform.value.site.rtl)
-                  localStorage.setItem("cc",this.logform.value.site.countrycode)
+                  console.log("rtl " + rtl)
+                  localStorage.setItem("cc", countryCode)
                 })
 
                 this.nav.push(MenuItemsPage)
               }
             })
         } else {
+          //offline connection
+          if (result==undefined) {
+            let countryCode = ''
+            let rtl:boolean
+            if (this.logform.value.site.language == null || this.logform.value.site.language == '') {
+              this.db.get('latestSiteName')
+                .then((val) => {
+  
+                  this.selected_site = val
+                })
+              countryCode = localStorage.getItem("cc")
+              this.db.get("rtl").then((rtl)=>{rtl=rtl } )
+            } else {
+              this.selected_site = this.logform.value.site.language
+              countryCode = this.logform.value.site.countrycode
+              rtl=this.logform.value.site.rtl
+            }
+            this.platform.ready().then(() => {
+              this.db.set("rtl", rtl)
+              //this.db.set('url', this.logform.value.site.url)
+              this.db.set("url", "https://netprof.ll.mit.edu/netprof")
+              this.db.set('username', this.logform.value.username);
+              this.db.set("latestSite", this.logform.value.site)
+              this.db.set("latestSiteName", this.logform.value.site.language)
+              console.log("rtl " + rtl)
+              localStorage.setItem("cc", countryCode)
+            })
+
+            this.nav.push(MenuItemsPage)
+          } else {
+
           // login failed
           this.utils.showInvalidUserPassword();
           console.log('failed login' + result)
+          }
         }
       }
         , (err) => {
@@ -290,12 +377,12 @@ export class LoginPage implements OnInit {
                   //this.language.writeLocal('loginValues',this.logform.value);
                   this.platform.ready().then(() => {
                     this.db.set("rtl", this.logform.value.site.rtl)
-                   // this.db.set('url', this.logform.value.site.url)
-                   this.db.set("url", "https://netprof.ll.mit.edu/netprof")
+                    // this.db.set('url', this.logform.value.site.url)
+                    this.db.set("url", "https://netprof.ll.mit.edu/netprof")
                     this.db.set('username', this.logform.value.username);
                     this.db.set("latestSite", this.logform.value.site)
                     this.db.set("latestSiteName", this.logform.value.site.language)
-                    localStorage.setItem("cc",this.logform.value.site.countrycode)
+                    localStorage.setItem("cc", this.logform.value.site.countrycode)
                   })
                   this.nav.push(MenuItemsPage)
                 }
@@ -318,9 +405,9 @@ export class LoginPage implements OnInit {
     loading.present();
     // this.url = this.logform.value.url
     //   let siteName=this.url.split("https://np.ll.mit.edu/",2)
-   //this.auth.load(this.logform.value.site).subscribe(
-   //for deployment 
-   this.auth.load(this.logform.value.site).then(
+    //this.auth.load(this.logform.value.site).subscribe(
+    //for deployment 
+    this.auth.load(this.logform.value.site).then(
 
       // using proxy  
       //this.language.load(siteName[1]).subscribe(
@@ -338,7 +425,7 @@ export class LoginPage implements OnInit {
           this.db.set("url", "https://netprof.ll.mit.edu/netprof")
           this.db.set('username', this.logform.value.username);
           this.db.set("rtl", this.logform.value.site.rtl)
-          localStorage.setItem("cc",this.logform.value.site.countrycode)
+          localStorage.setItem("cc", this.logform.value.site.countrycode)
         })
         //this.language.writeLocal('loginValues',this.logform.value);
         // navigate to the next page with parameters
@@ -357,19 +444,24 @@ export class LoginPage implements OnInit {
   }
 
 
-  signup() { 
-    // this.auth.signup(this.signform.value).subscribe(
-    //   (success) => {
-    //    this.utils.showAlert(this.signform.value.username, "Welcome ", "You have successfully created a NetProf account")
-    //     // this.user.vaue = ''
-    //     this.logform.value.username=this.signform.value.username
-    //     this.logform.value.password=this.signform.value.pass
-    //     this.authType = 'login';
-    //   },
-    //   (err) => 
-    //   this.utils.showAlert(this.signform.value.username, "Invalid username/email. Please try again.")
+  signup() {
+    this.auth.signup(this.signform.value).then(
+      (response) => {
+        if (response.ExistingUserName == undefined) {
+          this.utils.showAlert(this.signform.value.username, "Welcome ", "You have successfully created a NetProf account. Please check your email to create password.")
+          // this.user.vaue = ''
+          this.logform.value.username = this.signform.value.username
+          //this.logform.value.password=this.signform.value.pass
+          this.authType = 'login';
+        } else {
+          this.utils.showAlert(this.signform.value.username, "Existing UserName. Please change username.")
+          this.signform.value.username = ""
+        }
+      },
+      (err) =>
+        this.utils.showAlert(this.signform.value.username, "Invalid username/email. Please try again.")
 
-    // );
+    );
   }
 
 

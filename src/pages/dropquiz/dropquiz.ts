@@ -25,7 +25,7 @@ export class DropQuizPage {
     wordsRightOrder = []
     score: number = 0;
     siteName: string
-
+    quizSection:string=''
     constructor(public db: Storage, public utils: CommonUtils, private nav: NavParams, private navCtrl: NavController, private recUtils: RecordUtils) {
         let params = this.nav.get("params")
         this.questions = params.questions
@@ -33,9 +33,23 @@ export class DropQuizPage {
         this.testItems = params.testItems
         this.question = this.questions[0]
         this.siteName = params.siteName
-        this.theme=localStorage.getItem("theme")      
+        this.items=params.items
+        this.theme=localStorage.getItem("theme") 
+        this.db.get("quizSection").then((quiz) => this.quizSection = quiz)     
     }
     theme:string
+
+    ionViewWillEnter(){
+        let params = this.nav.get("params")
+        this.questions = params.questions
+        this.testLevel = params.testLevel
+        this.testItems = params.testItems
+        this.question = this.questions[0]
+        this.siteName = params.siteName
+        this.items=params.items
+        this.theme=localStorage.getItem("theme") 
+        this.db.get("quizSection").then((quiz) => this.quizSection = quiz)    
+    }
 
     ionViewDidLoad() {
         this.dragdrop()
@@ -158,7 +172,9 @@ export class DropQuizPage {
             }
             setTimeout(() => this.dragdrop(), 300)
             resolve(true)
-            this.recUtils.downPlay("assets/sounds/Correct.wav")
+            this.db.get("url").then((url) => {
+                this.recUtils.downPlay(url + "/" + this.question.item.ctmref)
+            })
         })
 
     }
@@ -170,7 +186,7 @@ export class DropQuizPage {
         for (let word of wordsRightOrder) {
             words = words + word + " "
         }
-        this.utils.presentToast(words, 2000)
+        // this.utils.presentToast(words, 2000)
         this.db.get("url").then((url) => {
             this.recUtils.downPlay(url + "/" + this.question.item.ctmref)
         })
@@ -182,4 +198,28 @@ export class DropQuizPage {
         this.testCount = 0
         this.navCtrl.pop()
     }
+
+    addPlaylist() {
+
+		this.questions.forEach((q) => {
+			this.items.filter(x => {
+				if (x.id == q.id) {
+					x.isAddPlaylist = true
+				}
+			})
+
+		})
+		this.db.set("items", this.items)
+		this.utils.presentToast('Quiz list added to Playlist.', 1500)
+	}
+
+
+	sendEmail() {
+
+		let data = {
+			email: '', subject: this.quizSection,quizType:"quizdrop", body: this.questions, html: false,
+			username: localStorage.getItem('username'), siteName: this.siteName, score: this.score
+		}
+		this.utils.sendEmail(data)
+	}
 }

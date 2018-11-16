@@ -8,6 +8,8 @@ import { PlaylistPage } from '../playlist/playlist';
 import { ContactPage } from '../contact/contact'
 import { AboutPage } from '../about/about'
 import { Storage } from '@ionic/storage';
+import { CommonUtils } from '../../utils/common-utils';
+
 @Component({
   templateUrl: 'othersover.html'
 })
@@ -21,23 +23,31 @@ export class OthersoverPage {
     public event: Events,
     public db: Storage,
     private platform: Platform,
-    private navParams: NavParams
+    private navParams: NavParams,
+    private utils: CommonUtils
   ) {
     this.theme = localStorage.getItem("theme")
     this.flag = localStorage.getItem("cc")
     this.pages = [
       // { title: 'Favorite', component: FavoritePage, icon: 'bookmark' },
       //  { title: 'Playlist', component: PlaylistPage, icon: 'list-box' },
-     // { title: 'Progress', component: ProgressPage, icon: 'analytics' },
+      // { title: 'Progress', component: ProgressPage, icon: 'analytics' },
       {
         title: 'Theme', component: '', icon: 'color-fill',
         sub: [{ subtitle: 'Green', component: 'green-theme' },
         { subtitle: 'Blue', component: 'blue-theme' },
         { subtitle: 'Default', component: 'ionic.theme.default' }]
       },
-    //  { title: 'Contact us', component: ContactPage, icon: 'contacts' },
-
+      //  { title: 'Contact us', component: ContactPage, icon: 'contacts' },
+      {
+        title: 'Quiz', component: '', icon: 'color-fill',
+        sub: [
+          { subtitle: 'Test', component: 'test' },
+          { subtitle: 'Practice', component: 'practice' }]
+      },
       { title: 'About', component: AboutPage, icon: 'information-circle' },
+      { title: 'Feedback/Comments', component: "feedback", icon: 'send' },
+
       { title: 'Logout ' + this.auth.user, component: LogoutPage, icon: 'log-out' }
     ];
     this.checkAvailSpeech(this.flag)
@@ -107,15 +117,15 @@ export class OthersoverPage {
     } else if (page.component == this.flag) {
       localStorage.setItem("spk", this.flag)
       this.viewCtrl.dismiss()
+    } else if (page.component == 'feedback') {
+      this.sendMail()
+      this.viewCtrl.dismiss()
     } else if (page.icon == 'log-out') {
       let params = {
         site: this.navParams.get("siteName"),
         items: this.navParams.get("items")
-      }
-      this.nav.push(page.component, { params: params })
-      this.viewCtrl.dismiss()
-    } else {
-      this.nav.push(page.component)
+      }  
+      this.nav.push(page.component,{params:params})
       this.viewCtrl.dismiss()
     }
 
@@ -148,4 +158,11 @@ export class OthersoverPage {
   // isLevel2Shown(idx) {
   //   return this.showLevel2 === idx;
   // };
+
+  sendMail() {
+    let data={email:'darreljohn.mendoza@dliflc.edu',subject:"Feedback/Comments",
+              body:'Your comments/feedback is highly appreciated. It will help us in improving the Netprof application. Thank you.',html:false}
+	
+    this.utils.sendEmailFeedback(data)
+  }
 }

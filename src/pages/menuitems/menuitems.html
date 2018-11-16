@@ -1,39 +1,72 @@
 <ion-split-pane>
-  <ion-menu [content]="mycontent">
-    <ion-header no-padding >
+  <ion-menu [content]="mycontent" id="lessonMenuId" type="overlay">
+    <ion-header no-padding>
       <ion-navbar no-padding hideBackButton="true" color={{theme}}>
-        <h5  menuClose no-padding text-center style="color:floralwhite;font-size:20px;" tappable >
+        <h5 menuClose no-padding text-center style="color:floralwhite;font-size:20px;" tappable>
           {{siteName}}
         </h5>
-        <h6  menuClose no-padding text-center color="danger" tappable >
+        <h6 menuClose no-padding text-center color="danger" tappable>
           {{title}}
         </h6>
-    </ion-navbar>
+      </ion-navbar>
     </ion-header>
 
     <ion-content>
-      <ion-list >
+      <ion-list>
         <ion-list-header>
           {{title}}
         </ion-list-header>
         <ion-item menuClose [class.activeHighlight]="checkActivePage('playList')" (click)="filterPlayList()">
-          <ion-icon color={{theme}} name="musical-notes"> </ion-icon>&nbsp;&nbsp;- Play List
+           Study List
         </ion-item>
         <div *ngIf="!isSublesson">
-          <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" *ngFor="let menu of lessonMenu ; let i=index" (click)="getSearchMenu(menu)">
+          <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" *ngFor="let menu of lessonMenu ; let i=index"
+            (click)="getSearchMenu(menu,'menu')">
             {{menu.type}} - {{menu.name}}
             <font color="green">({{menu.count}} items)</font>
           </ion-item>
         </div>
         <div *ngIf="isSublesson">
-          <ion-item *ngFor="let menu of lessonMenu ; let i=index" (click)="toggleLevel1('idx'+i,i)" [class.activeHighlight]="checkMainPage(menu)">
+          <ion-item *ngFor="let menu of lessonMenu ; let i=index" (click)="toggleLevel1('idx'+i,i)"
+            [class.activeHighlight]="checkMainPage(menu)">
             {{menu.type}} - {{menu.name}}
             <font color="green">({{menu.count}} {{menu.sublesson[0].type.toLowerCase()}}s)</font>
             <ion-list *ngIf="isLevel1Shown('idx'+i) ">
               <ion-item menuClose detail-none [class.activeHighlight]="checkActivePage(submenu)" *ngFor="let submenu of menu.sublesson"
-                text-wrap (click)="getSearchMenu(submenu)">
+                text-wrap (click)="getSearchMenu(submenu,'sub')">
                 {{submenu.type}} - {{submenu.name}}
                 <font color="green">({{submenu.count}} items)</font>
+              </ion-item>
+            </ion-list>
+          </ion-item>
+        </div>
+        <div *ngIf="isTopic">
+          <ion-item (click)="toggleTopic1('idx'+i,i)" [class.activeHighlight]="checkMainPage(menu)">
+            Topic
+            <ion-list *ngIf="isTopic1Shown('idx'+i) ">
+              <ion-item  [class.activeHighlight]="checkActivePage(menu)" (click)="toggleTopic2('idx'+i + 'idx'+i2,i,i2)"
+                *ngFor="let menu of topic ; let i=index"> 
+                {{menu.name}}
+                <font color="green">({{menu.count}} items)</font>
+                <ion-list *ngIf="isTopic2Shown('idx'+i+ 'idx'+i2) ">
+                  <ion-item menuClose [class.activeHighlight]="checkActivePage(subtopic)" *ngFor="let subtopic of menu.subtopic ; let i2=index"
+                    (click)="getSearchMenu(subtopic,'stopic')">
+                    {{subtopic.name}}
+                    <font color="green">({{subtopic.count}} items)</font>
+                  </ion-item>
+                </ion-list>
+              </ion-item>
+            </ion-list>
+          </ion-item>
+        </div>
+        <div *ngIf="isGrammar">
+          <ion-item (click)="toggleGrammar1('idx'+i,i)" [class.activeHighlight]="checkMainPage(menu)">
+            Grammar
+            <ion-list *ngIf="isGrammar1Shown('idx'+i) ">
+              <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" *ngFor="let menu of grammar ; let i=index"
+                (click)="getSearchMenu(menu,'grammar')">
+                {{menu.name}}
+                <font color="green">({{menu.count}} items)</font>
               </ion-item>
             </ion-list>
           </ion-item>

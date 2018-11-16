@@ -30,7 +30,7 @@
         <button no-padding left ion-button clear icon-only (click)="getLanguages()">
           <img style="padding-left: 1px;" src="assets/img/cc/{{flag}}.png" alt={{siteName}} width=42 height=42>
         </button>
-        <button style="padding-left: 1px; padding-right:0px" icon-only no-padding left ion-button menuToggle (click)="filterItems()">
+        <button #btnMenu style="padding-left: 1px; padding-right:0px" icon-only no-padding left ion-button menuToggle (click)="filterItems()">
           <ion-icon name="menu"></ion-icon>
         </button>
       </ion-col>
@@ -39,7 +39,7 @@
             (ionInput)="onSearchInput()" (ionClear)="onCancel()" (ionCancel)="onCancel()" [showCancelButton]="shouldShowCancel"
             placeholder="Search Item">
           </ion-searchbar> 
-          <ion-title *ngIf="!isViewAll">{{ lessonTitles }}</ion-title> 
+          <ion-title *ngIf="!isViewAll">{{ filterTitles }}</ion-title> 
       </ion-col>
       <ion-col col-4 style="padding-right: 0px;">
         <ion-buttons end style="padding-top: 8px;padding-left: 0px;">
@@ -62,7 +62,7 @@
  </ion-navbar>
 
 
-  <!--  these features will be enabled in the future.
+  <!--  these features will be enabled in the future.  -->
     
   <ion-navbar no-padding color="light" hideBackButton="true">
     <ion-segment color="dark" top [(ngModel)]="opts" (ionChange)="segmentChanged($event)">
@@ -73,9 +73,9 @@
       <ion-segment-button value="quizdrop">
         Syntax
       </ion-segment-button>
-      <ion-segment-button value="quiztrans">
+    <!--  <ion-segment-button value="quiztrans">
         Scribe
-      </ion-segment-button>
+      </ion-segment-button>  -->
       <ion-segment-button value="quizfill">
         Fill-In
       </ion-segment-button>
@@ -84,7 +84,7 @@
       </ion-segment-button>
     </ion-segment>
   </ion-navbar>
-  -->
+ 
 
   <div style="padding-left: 10px;background-color:#f4f4f4;font-size:14px" *ngIf="opts=='search'">
     Showing

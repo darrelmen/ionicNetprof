@@ -2,7 +2,9 @@ import { NgModule, ErrorHandler } from '@angular/core';
 import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
 import { FormsModule  } from '@angular/forms';
 import { CommonModule  } from '@angular/common';
-import { HttpClientModule,HttpClient } from '@angular/common/http';
+import { HttpClientModule,HttpClient,HttpBackend, HttpXhrBackend } from '@angular/common/http';
+//import { NativeHttpModule, NativeHttpBackend, NativeHttpFallback } from 'ionic-native-http-connection-backend';
+
 import { BrowserModule } from '@angular/platform-browser';
 import { MyApp } from './app.component';
 import { SearchListPage } from '../pages/searchlist/searchlist';
@@ -38,9 +40,10 @@ import {SortoverPage } from '../pages/sortover/sortover';
 import { File } from '@ionic-native/file';
 import { FileTransfer,  FileTransferObject } from '@ionic-native/file-transfer';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
-import { AuthHttp, AuthConfig } from 'angular2-jwt';
 import { Media } from '@ionic-native/media';
 import { Device } from '@ionic-native/device'
+import { EmailComposer } from '@ionic-native/email-composer';
+
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { QuizFillPage } from '../pages/quizFill/quizFill';
@@ -60,9 +63,15 @@ import { PlaylistPage } from '../pages/playlist/playlist';
 import { ProgressBarComponent } from '../components/progress-bar/progress-bar';
 import {ContactPage} from '../pages/contact/contact'
 import {AboutPage} from '../pages/about/about'
+
 import { LongPressModule } from 'ionic-long-press'; 
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
+// import { FcmProvider } from '../providers/fcm/fcm';
+
+// import { AngularFireModule } from 'angularfire2';
+// import { AngularFireDatabaseModule, AngularFireDatabase } from 'angularfire2/database';
+// import { AngularFireAuthModule } from 'angularfire2/auth';
 
 //import {EmailComposer } from '@ionic-native/email-composer';
 
@@ -76,15 +85,22 @@ import { SpeechRecognition } from '@ionic-native/speech-recognition';
 //this require is used only for testing jsonwebtoken
 //declare var require
 //var jwt = require("jsonwebtoken")
-export function getAuthHttp(http,storage) {
-  return new AuthHttp(new AuthConfig({
-      headerPrefix: '',
-      noJwtError: true,
-      globalHeaders: [{'Accept': 'application/json', 'Content-Type': 'application/json'}],
-      tokenGetter: (() => storage.get('id_token').then((val)=>{return val})),
-  }), http);
-}
+// export function getAuthHttp(http,storage) {
+//   return new AuthHttp(new AuthConfig({
+//       headerPrefix: '',
+//       noJwtError: true,
+//       globalHeaders: [{'Accept': 'application/json', 'Content-Type': 'application/json'}],
+//       tokenGetter: (() => storage.get('id_token').then((val)=>{return val})),
+//   }), http);
+// }
 
+// export const firebaseConfig = {
+//   apiKey: "AIzaSyAQxcAgZeNXGC6iiPGx68RSXeqUYtGXaL0",
+//   authDomain: "edu.dliflc.netProFlite",
+//   databaseURL: "https://netprof-fcm.firebaseio.com",
+//   storageBucket: "your-domain-name.appspot.com",
+//   messagingSenderId: '904871167037-42jhteb3i2cdo9gsj0ffbcrrdvt58v0g.apps.googleusercontent.com'
+// };
 
 
 @NgModule({
@@ -100,7 +116,10 @@ export function getAuthHttp(http,storage) {
   ],
   imports: [FormsModule,CommonModule,BrowserModule, LongPressModule, //NativeHttpModule,HttpModule,
     IonicModule.forRoot(MyApp,{tabsPlacement: 'top'}),VirtualListModule,HttpClientModule,
-    IonicStorageModule.forRoot()
+    IonicStorageModule.forRoot() //,NativeHttpModule
+    // AngularFireModule.initializeApp(firebaseConfig),
+    // AngularFireDatabaseModule,
+    // AngularFireAuthModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -111,14 +130,20 @@ export function getAuthHttp(http,storage) {
     OthersoverPage,SortoverPage,ContactPage,AboutPage,ProgressPage,
     FavoritePage,PlaylistPage,AutoPlayPage,DropPage,DropQuizPage,MixMatchPage,MixMatchGamePage
   ],
-  providers: [StatusBar,Media,FileTransfer,TextToSpeech,FileTransferObject,File, Device,HTTP, AndroidPermissions,SpeechRecognition, //EmailComposer,
-    SplashScreen,{
-      provide: AuthHttp,
-      useFactory: getAuthHttp,
-      deps: [HttpClient, Storage]
-  },   // {provide: Http, useClass: Http, deps: [NativeHttpFallback, RequestOptions]},
-    {provide:ErrorHandler, useClass: IonicErrorHandler}
-      ,AuthHttp,AuthService,DBProvider,CommonUtils,RecordUtils],
+  providers: [StatusBar,Media,TextToSpeech,File, Device,HTTP, AndroidPermissions,SpeechRecognition,FileTransfer,
+     EmailComposer,AuthService,DBProvider,CommonUtils,RecordUtils,
+    SplashScreen,
+ //   {provide: HttpBackend, useClass: NativeHttpFallback, deps: [ NativeHttpBackend, HttpXhrBackend]},
+  //   {
+  //     provide: {
+  //     HttpBackend, useClass: NativeHttpFallback,
+  //     //useFactory: getAuthHttp,
+  //     deps: [HttpClient, Storage, NativeHttpBackend, HttpXhrBackend]
+  // },   // {provide: Http, useClass: Http, deps: [NativeHttpFallback, RequestOptions]},
+  
+  {provide:ErrorHandler, useClass: IonicErrorHandler},
+      ] // ,AngularFireDatabase,
+   // FcmProvider],
   //,MockBackend,FakeBackendProvider,BaseRequestOptions]
   
 })

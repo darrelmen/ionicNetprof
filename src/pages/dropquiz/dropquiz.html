@@ -26,7 +26,23 @@
     </div>
     <ion-card *ngIf="testCount == testItems">
         <h2 padding text-center>Final Score: {{score}}/{{testItems}}</h2>
-        <button padding (click)="restartQuiz()" ion-button full color="primary">Start Again</button>
+        <ion-row>
+			<ion-col col-4>
+				<button (click)="restartQuiz()" ion-button full color={{theme}}>Start Again</button>
+			</ion-col>
+			<ion-col col-4>
+				<button (click)="addPlaylist()" ion-button full color={{theme}}>
+					<ion-icon name="musical-notes"></ion-icon>&nbsp;+ Studylist
+				</button>
+			</ion-col>
+			<ion-col col-4>
+				<button (click)="sendEmail()" ion-button full color={{theme}}>
+					<ion-icon name="mail"></ion-icon>&nbsp;Send
+
+				</button>
+			</ion-col>
+		</ion-row>
+
     </ion-card>
 </ion-content>
 <ion-footer *ngIf="testCount < testItems">

@@ -115,7 +115,7 @@ export class AutoPlayPage {
         // to get the duration during autoplay
         if (this.isAutoPlay) {
           if (this.duration == undefined || this.duration == null) this.duration = 2500
-          this.slider.autoplay = (parseInt(this.duration) + 300) * 2
+          this.slider.autoplay = (parseInt(this.duration) + 1000) * 2
           //this.slider.autoplay = 1000
         }
         var item: Item = this.items[indx - 1]
@@ -127,7 +127,7 @@ export class AutoPlayPage {
               console.log("Tts complete " + ret)
               //  this.ttsComplete = ret
             })
-          }, parseInt(this.duration) + 100)
+          }, parseInt(this.duration) + 300)
         }
 
       }
@@ -140,7 +140,7 @@ export class AutoPlayPage {
     this.isAutoPlay = true
     this.slider.freeMode = true;
     if (this.duration == undefined || this.duration == null) this.duration = 2500
-    this.slider.autoplay = parseInt(this.duration) + 300;
+    this.slider.autoplay = parseInt(this.duration) + 1000;
 
     // this.slider.autoplay = 1300;
 

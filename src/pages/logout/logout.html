@@ -1,4 +1,4 @@
-<ion-header padding  *ngIf="!auth.authenticated()" class="headerLogo">
+<ion-header padding  class="headerLogo">
   <ion-row style="background-color:#001a33;">
     <ion-col width-10>
       <ion-avatar item-left>
@@ -19,7 +19,7 @@
     
 </ion-navbar>
 </ion-header>
-<ion-content  *ngIf="!auth.authenticated()" padding class="tools">
+<ion-content  padding class="tools">
   <div >
     <div padding>
       <h1 text-center>Thanks for visiting NetProF-lite, {{ auth.user }}! </h1>

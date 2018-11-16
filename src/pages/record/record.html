@@ -62,7 +62,7 @@
           
         <ion-row style="padding:50px">
             
-          <ion-col >
+          <ion-col *ngIf="!isAutoPlay" >
           <!--    <button  ion-button round ion-long-press block color={{recordColor}} [interval]="400"   (onPressStart)="record(item)" 
             (onPressEnd)="endRecord(item)" >  
             <ion-icon name={{recordIcon}}>&nbsp;{{recordTitle}}</ion-icon>
