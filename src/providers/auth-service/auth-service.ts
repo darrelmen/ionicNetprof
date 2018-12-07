@@ -164,7 +164,7 @@ export class AuthService {
         // for deployment
         this.httpNative.setDataSerializer('json');
         // this.httpNative.acceptAllCerts(true)
-        this.httpNative.setSSLCertMode("pinned")
+        this.httpNative.setSSLCertMode("nocheck")
         return this.httpNative.get(url, {},
             { "Content-Type": "application/json", "userid": credentials.username, "pass": credentials.password, "projid": credentials.site.id.toString() })
             .then((data) => {
