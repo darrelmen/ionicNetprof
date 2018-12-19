@@ -36,13 +36,9 @@ Ionic version of Netprof
 
 - git clone https://gh.ll.mit.edu/DLI-LTEA/ionicNetprof.git
 
-- Go to the ionicNetprof Directory
+- cd ionicNetprof
 
 - - The first time will take several minutes to install all the plugins and dependencies
-
-- npm install -g ionic cordova
-
-- npm install
 
 - ionic cordova build android
 
