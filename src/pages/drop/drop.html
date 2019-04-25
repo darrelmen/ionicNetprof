@@ -1,7 +1,6 @@
 <ion-card>
-    <h2 style="color:rgb(66, 4, 14); text-align:center; padding:2px">Sentence Syntax Checker . </h2>
-
-    <h2 style="color:green;padding: 15px 10px 15px 10px; text-align:center;">
+     <h2 style="color:rgb(66, 4, 14); text-align:center; padding:2px">{{quizSection}}</h2>
+   <h2 style="color:green;padding: 15px 10px 15px 10px; text-align:center;">
         <font color="blue">NOTE:</font> Rearrange the Words to form the correct Sentence.</h2>
     <ion-list padding-top>
         <ion-list-header no-padding>
@@ -10,7 +9,7 @@
         </ion-list-header>
         <ion-item no-padding>
             <ion-range min="10" max={{testMax}} pin="true" [(ngModel)]="testItems" color="secondary">
-                <ion-label range-left>10</ion-label>
+                <ion-label range-left>5</ion-label>
                 <ion-label range-right>{{testMax}}</ion-label>
             </ion-range>
         </ion-item>

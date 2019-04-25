@@ -8,8 +8,8 @@
 import { Component } from '@angular/core';
 import { NavController} from 'ionic-angular';
 import { Item } from '../../model/item';
-import { Answer } from '../../model/answer';
-import { Question } from '../../model/question';
+//import { Answer } from '../../model/answer';
+//import { Question } from '../../model/question';
 import { Storage } from '@ionic/storage';
 import { CommonUtils } from '../../utils/common-utils';
 import {MixMatchGamePage} from '../../pages/mixmatchgame/mixmatchgame'
@@ -22,7 +22,7 @@ export class MixMatchPage {
     testItems: number = 5
     testMax=20
     siteName: string
-   
+    quizSection='All items'
 
     constructor(public db: Storage, public utils: CommonUtils,public navCtrl:NavController) {
         this.db.get("latestSiteName").then((site) => {
@@ -38,7 +38,8 @@ export class MixMatchPage {
                 this.siteName = site
             })
         })
-        this.theme=localStorage.getItem("theme")      
+        this.theme=localStorage.getItem("theme")    
+        this.db.get("quizSection").then((quiz) => this.quizSection = quiz)       
     }
    theme:string
 

@@ -6,7 +6,7 @@ import { CommonUtils } from '../../utils/common-utils'
 import { Storage } from '@ionic/storage';
 import { MenuItemsPage } from '../../pages/menuitems/menuitems';
 import { Sites } from '../../model/sites'
-import { tap } from 'rxjs/operators'
+//import { tap } from 'rxjs/operators'
 
 //import { FcmProvider } from '../../providers/fcm/fcm';
 import {
@@ -14,12 +14,16 @@ import {
   FormControl,
   Validators
 } from '@angular/forms';
+// import { AboutPage } from '../about/about';
+// import { ContactPage } from '../contact/contact';
 //import { EmailComposer } from '@ionic-native/email-composer';
 
 
 
 @Component({
   templateUrl: 'login.html',
+ 
+  
 })
 
 
@@ -27,7 +31,7 @@ export class LoginPage implements OnInit {
   authType: string = 'login';
   // to get the '#usr' tag in the login html
   @ViewChild('user') user;
-  sites: any;
+  sites:any;
   url: string
   selected_site: any = 'site'
   passwd = ""
@@ -46,11 +50,15 @@ export class LoginPage implements OnInit {
     // public fcm: FcmProvider,
     public toastCtrl: ToastController
     // public emailComposer: EmailComposer
+    
+
 
   ) {
     this.platform.ready().then(() => { this.db })
     this.theme = localStorage.getItem("theme")
-
+    // this.tab1Root=AboutPage
+    // this.tab2Root=AboutPage
+    // this.tab3Root=ContactPage
   }
   ionViewDidLoad() {
     // get fcm token
@@ -67,7 +75,9 @@ export class LoginPage implements OnInit {
 
 
   }
-
+//  tab1Root
+//  tab2Root
+//  tab3Root
 
   theme: string
   affiliation: string = "DLIFLC"
@@ -109,9 +119,10 @@ export class LoginPage implements OnInit {
 
         //preselected site
         this.db.get('latestSiteName')
-          .then((val) => {
-            this.selected_site = val
+          .then((latestSite) => {
+            this.selected_site = latestSite
             //this.logform.value.selectedSite=this.selected_site
+            if (this.selected_site==null) this.selected_site="Select a language"
             console.log('selected Site: ' + this.selected_site)
 
             //this.username=localStorage.getItem("username")
@@ -119,7 +130,7 @@ export class LoginPage implements OnInit {
             this.db.get("rtl").then((rtl)=>{
             this.logform.setValue({
               'username': localStorage.getItem("username"), "password": localStorage.getItem("pass"),
-              "site": { 'language': this.selected_site, 'id': localStorage.getItem('siteid'), 
+              "site": { 'language': latestSite, 'id': localStorage.getItem('siteid'), 
               rtl:rtl, countrycode: localStorage.getItem("cc") }
             })
           })
@@ -130,13 +141,13 @@ export class LoginPage implements OnInit {
             if (val == null || val == "") {
 
               this.auth.getSites()
-                // .subscribe(result => {
+               // .subscribe((result:Sites) => {
                 //for deployment
-                .then(result => {
+               .then(result => {
                   console.log(" sites upload ")
                   // for mock
                   // this.sites=result[0].sites
-                  this.sites = result.sites
+                 this.sites = result.sites
                   this.sites = this.sites.sort(function (a, b) {
                     return a.language.localeCompare(b.language)
                   })
@@ -274,15 +285,25 @@ export class LoginPage implements OnInit {
     actionSheet.present();
   }
 
+  lastLoginTime=0
+  loginCtr=0 
   login() {
-    this.auth.loginMD5(this.logform.value)
+    if (this.loginCtr>3) {
+      var d = new Date();
+      if (d.getMinutes()>=this.lastLoginTime){
+        this.loginCtr=0
+      }
+      this.utils.showAlert("","Please try again after 5 minutes")
+    }else {
+      this.auth.loginMD5(this.logform.value)
 
       // this.auth.loginObs(this.logform.value)
       // .subscribe(result => {
       // for deployment  
       .then(result => {
         if (result === true) {
-
+          this.loginCtr=0
+          this.lastLoginTime=0
           this.url = this.logform.value.site.language
 
           let countryCode = ''
@@ -312,7 +333,9 @@ export class LoginPage implements OnInit {
                 this.platform.ready().then(() => {
                   this.db.set("rtl", rtl)
                   //this.db.set('url', this.logform.value.site.url)
-                  this.db.set("url", "https://netprof.ll.mit.edu/netprof")
+                  this.db.set("url", this.auth.NET_URL)
+        
+                 //this.db.set("url", "https://netprof.ll.mit.edu/netprof")
                   this.db.set('username', this.logform.value.username);
                   this.db.set("latestSite", this.logform.value.site)
                   this.db.set("latestSiteName", this.logform.value.site.language)
@@ -326,6 +349,7 @@ export class LoginPage implements OnInit {
         } else {
           //offline connection
           if (result==undefined) {
+            console.log("we are offline")
             let countryCode = ''
             let rtl:boolean
             if (this.logform.value.site.language == null || this.logform.value.site.language == '') {
@@ -344,7 +368,9 @@ export class LoginPage implements OnInit {
             this.platform.ready().then(() => {
               this.db.set("rtl", rtl)
               //this.db.set('url', this.logform.value.site.url)
-              this.db.set("url", "https://netprof.ll.mit.edu/netprof")
+              this.db.set("url", this.auth.NET_URL)
+        
+              //this.db.set("url", "https://netprof.ll.mit.edu/netprof")
               this.db.set('username', this.logform.value.username);
               this.db.set("latestSite", this.logform.value.site)
               this.db.set("latestSiteName", this.logform.value.site.language)
@@ -354,9 +380,19 @@ export class LoginPage implements OnInit {
 
             this.nav.push(MenuItemsPage)
           } else {
-
+            var d = new Date();
+            this.loginCtr=this.loginCtr +1
+            if (this.loginCtr==3){
+              this.lastLoginTime = d.getMinutes() + 5
+              if(this.lastLoginTime>=60){
+                this.lastLoginTime=this.lastLoginTime-60
+              }
+            }
+            console.log("tiemr " + this.lastLoginTime)
+           
           // login failed
           this.utils.showInvalidUserPassword();
+          console.log("ctr " + this.loginCtr)
           console.log('failed login' + result)
           }
         }
@@ -378,7 +414,9 @@ export class LoginPage implements OnInit {
                   this.platform.ready().then(() => {
                     this.db.set("rtl", this.logform.value.site.rtl)
                     // this.db.set('url', this.logform.value.site.url)
-                    this.db.set("url", "https://netprof.ll.mit.edu/netprof")
+                   this.db.set("url", this.auth.NET_URL)
+        
+                  // this.db.set("url", "https://netprof.ll.mit.edu/netprof")
                     this.db.set('username', this.logform.value.username);
                     this.db.set("latestSite", this.logform.value.site)
                     this.db.set("latestSiteName", this.logform.value.site.language)
@@ -392,6 +430,7 @@ export class LoginPage implements OnInit {
             this.utils.showInvalidUserPassword(err);
           }
         })
+      }
   };
 
 
@@ -405,7 +444,7 @@ export class LoginPage implements OnInit {
     loading.present();
     // this.url = this.logform.value.url
     //   let siteName=this.url.split("https://np.ll.mit.edu/",2)
-    //this.auth.load(this.logform.value.site).subscribe(
+   // this.auth.load(this.logform.value.site).subscribe(
     //for deployment 
     this.auth.load(this.logform.value.site).then(
 
@@ -422,9 +461,11 @@ export class LoginPage implements OnInit {
           this.db.set("latestSite", this.logform.value.site)
           this.db.set("latestSiteName", this.logform.value.site.language)
           //this.db.set('url', this.logform.value.site.url).then(() => console.log("set Url"))
-          this.db.set("url", "https://netprof.ll.mit.edu/netprof")
+          this.db.set("url", this.auth.NET_URL)
+          //this.db.set("url", "https://netprof.ll.mit.edu/netprof")
           this.db.set('username', this.logform.value.username);
           this.db.set("rtl", this.logform.value.site.rtl)
+          localStorage.setItem("playOption",'1')
           localStorage.setItem("cc", this.logform.value.site.countrycode)
         })
         //this.language.writeLocal('loginValues',this.logform.value);
@@ -438,6 +479,7 @@ export class LoginPage implements OnInit {
       },
       (err) => {
         console.log("login err " + err);
+        loading.dismiss();
       }
     );
 

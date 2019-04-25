@@ -1,4 +1,4 @@
-<ion-split-pane>
+<ion-split-pane [enabled]="enablePanel">
   <ion-menu [content]="mycontent" id="lessonMenuId" type="overlay">
     <ion-header no-padding>
       <ion-navbar no-padding hideBackButton="true" color={{theme}}>
@@ -17,7 +17,7 @@
           {{title}}
         </ion-list-header>
         <ion-item menuClose [class.activeHighlight]="checkActivePage('playList')" (click)="filterPlayList()">
-           Study List
+          Study List
         </ion-item>
         <div *ngIf="!isSublesson">
           <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" *ngFor="let menu of lessonMenu ; let i=index"
@@ -31,26 +31,37 @@
             [class.activeHighlight]="checkMainPage(menu)">
             {{menu.type}} - {{menu.name}}
             <font color="green">({{menu.count}} {{menu.sublesson[0].type.toLowerCase()}}s)</font>
-            <ion-list *ngIf="isLevel1Shown('idx'+i) ">
+            <ion-list *ngIf="isLevel1Shown('idx'+i) || checkMainPage(menu)">
               <ion-item menuClose detail-none [class.activeHighlight]="checkActivePage(submenu)" *ngFor="let submenu of menu.sublesson"
-                text-wrap (click)="getSearchMenu(submenu,'sub')">
+                text-wrap (click)="getSearchMenu(submenu, 'submenu', menu)">
                 {{submenu.type}} - {{submenu.name}}
                 <font color="green">({{submenu.count}} items)</font>
               </ion-item>
             </ion-list>
           </ion-item>
         </div>
-        <div *ngIf="isTopic">
+        <div *ngIf="!isSubTopic  && isTopic">
+          <ion-item  (click)="toggleTopic1('idx'+i,i)" [class.activeHighlight]="checkMainPage(menu)">
+            Topic
+            <ion-list *ngIf="isTopic1Shown('idx'+i) ">
+              <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" (click)="getSearchMenu(menu,'topic')" *ngFor="let menu of topic ; let i=index">
+                {{menu.name}}
+                <font color="green">({{menu.count}} items)</font>
+              </ion-item>
+            </ion-list>
+          </ion-item>
+        </div>
+        <div *ngIf="isSubTopic">
           <ion-item (click)="toggleTopic1('idx'+i,i)" [class.activeHighlight]="checkMainPage(menu)">
             Topic
             <ion-list *ngIf="isTopic1Shown('idx'+i) ">
-              <ion-item  [class.activeHighlight]="checkActivePage(menu)" (click)="toggleTopic2('idx'+i + 'idx'+i2,i,i2)"
-                *ngFor="let menu of topic ; let i=index"> 
+              <ion-item [class.activeHighlight]="checkActivePage(menu)" (click)="toggleTopic2('idx'+i + 'idx'+i2,i,i2)"
+                *ngFor="let menu of topic ; let i=index">
                 {{menu.name}}
                 <font color="green">({{menu.count}} items)</font>
-                <ion-list *ngIf="isTopic2Shown('idx'+i+ 'idx'+i2) ">
+                <ion-list *ngIf="isTopic2Shown('idx'+i+ 'idx'+i2) || checkActivePage(menu)">
                   <ion-item menuClose [class.activeHighlight]="checkActivePage(subtopic)" *ngFor="let subtopic of menu.subtopic ; let i2=index"
-                    (click)="getSearchMenu(subtopic,'stopic')">
+                    (click)="getSearchMenu(subtopic,'subtopic')">
                     {{subtopic.name}}
                     <font color="green">({{subtopic.count}} items)</font>
                   </ion-item>
@@ -65,6 +76,18 @@
             <ion-list *ngIf="isGrammar1Shown('idx'+i) ">
               <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" *ngFor="let menu of grammar ; let i=index"
                 (click)="getSearchMenu(menu,'grammar')">
+                {{menu.name}}
+                <font color="green">({{menu.count}} items)</font>
+              </ion-item>
+            </ion-list>
+          </ion-item>
+        </div>
+        <div *ngIf="isDialect">
+          <ion-item (click)="toggleDialect1('idx'+i,i)" [class.activeHighlight]="checkMainPage(menu)">
+            Dialect
+            <ion-list *ngIf="isDialect1Shown('idx'+i) ">
+              <ion-item menuClose [class.activeHighlight]="checkActivePage(menu)" *ngFor="let menu of dialect ; let i=index"
+                (click)="getSearchMenu(menu,'dialect')">
                 {{menu.name}}
                 <font color="green">({{menu.count}} items)</font>
               </ion-item>

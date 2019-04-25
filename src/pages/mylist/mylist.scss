@@ -1,0 +1,28 @@
+page-mylist{
+  .fab[mini] {
+    margin: 0px;
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+}
+    ion-card {
+         height:97%;
+         position: top;
+         top: 0%;
+      }
+     ion-slides{
+        height: 100%;
+      }
+      
+      .slide-title {
+        margin-top: 2.8rem;
+      }
+    
+      .slide-image {
+        max-height: 50%;
+        max-width: 60%;
+        margin: 18px 0;
+      }
+      
+
+}

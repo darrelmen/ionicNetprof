@@ -1,10 +1,14 @@
 //import { StringIterator } from "lodash";
+// the item case should match with the one comming from the http request response 
+// ex. Topic should be Topic and not topic
+
 export class Item{
 	id:string;
 	fl:string;
 	tl:string;
 	en:string;
 	ct:string;
+	ctid:string;
 	ctr:string;
 	ctmref:string;
 	ctfref:string;
@@ -17,16 +21,22 @@ export class Item{
 	lessonId:string
 	sublesson:string
 	sublessonId:string
-	topic:string
+	Topic:string
 	inputValue:string
 	subtopic:string
 	Grammar:string
+	Dialect:string
 	searchTopic:string
 	selectedSlow:boolean=false
-	selectedCtr:boolean=false
+    selectedCtr:boolean=false
+	timeRecord:string
 	//check if it recording or not
 	isRecord:boolean=false
+	isRecordCtx:boolean=false
+	isRecordNew:boolean=false
 	isPlay:boolean=false
+	playIconMale='male'
+	playIconFemale='female'
 	isAddPlaylist=false
 	//not in use right now
 	isActiveM:boolean=true

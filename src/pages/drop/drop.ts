@@ -20,17 +20,17 @@ import {DropQuizPage} from '../../pages/dropquiz/dropquiz'
 })
 export class DropPage {
     items = [];
-    testItems: number = 10
+    testItems: number = 5
     testLevel = 1
     testMax=100
     questions: Array<Question> = []
     answer = []
     wordsRightOrder = []
-   url: any
+    url: any
     score: number = 0;
     siteName: string
     itemsRandom: any
-
+    quizSection
 
     constructor(public db: Storage, public utils: CommonUtils,public navCtrl:NavController) {
         this.db.get("latestSiteName").then((site) => {
@@ -46,6 +46,8 @@ export class DropPage {
                 this.siteName = site
             })
         })
+        this.db.get("quizSection").then((quiz) => this.quizSection = quiz)
+
       this.theme=localStorage.getItem("theme")      
     }
     theme:string

@@ -26,55 +26,117 @@
         <ion-icon name="arrow-back">&nbsp;Back</ion-icon>
       </button>
     </ion-buttons>
-    <ion-title text-center tappable (click)="close()">{{siteName}} - ({{allItems.length}} items)</ion-title>
+    <ion-title text-center tappable (click)="close()">{{siteName}} - {{filterTitle}} ({{allItems.length}} items)
+    </ion-title>
+    <ion-buttons  end>
+      <button style="padding-right:13px;"  tooltip="Audio on/off"  positionV="bottom" ion-button large  *ngIf="isAudioOn" (click)="toggleAudio($event)">
+        <ion-icon name="volume-up"></ion-icon>
+      </button>
+      <button style="padding-right:13px;"  tooltip="Audio on/off"  positionV="bottom" ion-button large  *ngIf="!isAudioOn" (click)="toggleAudio($event)">
+        <ion-icon name="volume-off"></ion-icon>
+      </button>
+      <button  large ion-button tooltip="Show/hide both Context and Vocab"  positionV="bottom" *ngIf="isShowAll" (click)="toggleShowAll()">
+        <ion-icon name="eye">&nbsp;</ion-icon> 
+      </button>
+      <button  large ion-button tooltip="Show/hide both Context and Vocab"  positionV="bottom"  *ngIf="!isShowAll" (click)="toggleShowAll()">
+        <ion-icon name="eye-off">&nbsp;</ion-icon> 
+      </button>
+    </ion-buttons>
     <!--  <button ion-button round (click)="close()">Close</button> -->
   </ion-navbar>
+  <h3 style="padding-top:0px;text-align:center; color:darkred;">&nbsp;{{ item.lesson }} {{item.lessonId }}
+      &nbsp;{{ item.sublesson }} {{item.sublessonId }}</h3>
 
 </ion-header>
 
 <ion-content>
-    <audio [src]=""  #audio></audio>
-     
-  <ion-card>
-    <ion-slides no-margin #mySlider (ionSlideDidChange)="playSlide()" (ionSlideReachEnd)="getNextItem()" >
-      <ion-slide *ngFor="let item of items ;  let id=index" >
-        <h3 style="font-size:80%; text-align:left; color:darkred;">&nbsp;{{ item.lesson }} {{item.lessonId }} &nbsp;{{ item.sublesson }} {{item.sublessonId }}&nbsp; ID:{{item.id }}</h3>
-        <!-- <button ion-button right  text-right large clear  (click)="context(item)" ><ion-icon  name="quote">Context Sentence</ion-icon> </button> -->
-        <h1 dir={{rtl}} id={{item.id}} padding tappable (click)="context(item,id,$event)" style="color:blue; " *ngIf="isContext">
-          &nbsp;&nbsp;{{ item.ct }} </h1>
-        <h2 no-padding dir={{rtl}} id={{item.id}} padding tappable (click)="context(item,id,$event)" style="color:rgb(234, 0, 255);" *ngIf="isBoth  || isEnglish">
-          &nbsp;&nbsp;{{ item.ctr }} </h2>
+   <ion-card>
+    <ion-slides no-margin #mySlider (ionSlideDidChange)="playSlide()" (ionSlideReachEnd)="getNextItem()">
+      <ion-slide *ngFor="let item of items ;  let id=index">
+      <!--   <h3 style="font-size:80%; text-align:left; color:darkred;">&nbsp;{{ item.lesson }} {{item.lessonId }}
+          &nbsp;{{ item.sublesson }} {{item.sublessonId }}&nbsp; ID:{{item.id }}</h3>
+        <button ion-button right  text-right large clear  (click)="context(item)" ><ion-icon  name="quote">Context Sentence</ion-icon> </button> -->
+       
 
-        <h1 tappable wrap (click)="man(item,id,$event)" style="color:green; text-align:center;"> {{ item.fl }}</h1>
-        <h2 tappable no-padding wrap (click)="playEnglish(item)" *ngIf="isBoth || isEnglish"> {{item.en }}</h2>
+        <h1 style="padding-top:18px;padding-bottom:0px;color:green; text-align:center;" tappable (click)="man(item,id,$event)" *ngIf="!selectedCtx || isShowAll ">
+          {{ item.fl }}</h1>
+         <h2 no-padding  style="color:rgb(140, 0, 255);padding-top:0px" *ngIf="(isBoth && !selectedCtx ) || isShowAll ">
+         {{ item.en }} </h2>
         <h2> {{item.tl }}</h2>
+        <div padding-left padding-right tappable (click)="playRecord(item,item.id)" id=recordPh{{item.id}} text-wrap
+        *ngIf="(recordType=='vocab' && isBoth && !selectedCtx ) || isShowAll"></div>
+
+        <h1 dir={{rtl}} id={{item.id}} style="padding-top:20px;color:blue;padding-bottom:0px" tappable (click)="man(item,id,$event)" *ngIf="selectedCtx || isShowAll ">
+        {{ item.ct }} </h1>
+        <h2 no-padding dir={{rtl}} id={{item.id}} 
+        style="color:rgb(234, 0, 255);padding-top:0px" *ngIf="(isBoth && selectedCtx) || isShowAll ">
+        {{ item.ctr }} </h2> <!--tappable  (click)="playEnglish(item)-->
         <!--<p padding tappable wrap (click)="context(item)" style="color:blue;" >Context: {{item.ct }} </p> 
         <div padding tappable wrap  id=recordFl{{item.id}} text-wrap></div> -->
-        <div padding-left padding-right (click)="playRecord(item)" id=recordPh{{item.id}} text-wrap></div>
+        <!---->
+        <div padding-left padding-right tappable (click)="playRecord(item,item.ctid)" id=recordPh{{item.ctid}} text-wrap
+          *ngIf="(recordType=='context' && isBoth && selectedCtx) || isShowAll"></div>
+
         <div *ngIf="isSpinner">
           <ion-spinner name="bubbles"></ion-spinner>
         </div>
-        <ion-fab bottom  color="light" right>
-            <button ion-fab mini clear color="light" > <div id=container{{item.id}}  (click)="playRecord(item)"></div>
+
+
+        <!--display highCharts -->
+        <ion-fab bottom color="light" clear  right>
+          <button ion-fab mini clear color="light" >
+            <div id=container{{item.id}} tappable (click)="playRecord(item,item.id)" *ngIf="recordType=='vocab'"></div>
+            <div id=container{{item.ctid}} tappable (click)="playRecord(item,item.ctid)" *ngIf="recordType=='context'"></div>
+          </button>
+        </ion-fab>
+
+        <ion-row style="padding-top:50px">
+
+        <!-- <ion-col col-6 >
+            <button ion-button round  block color={{recordColor}} 
+              (click)="recordTest(item,'vocab')" >
+              <ion-icon name={{recordIcon}}>&nbsp;Vocab test</ion-icon>
             </button>
-        
-          </ion-fab>
-          
-        <ion-row style="padding:50px">
-            
-          <ion-col *ngIf="!isAutoPlay" >
-          <!--    <button  ion-button round ion-long-press block color={{recordColor}} [interval]="400"   (onPressStart)="record(item)" 
-            (onPressEnd)="endRecord(item)" >  
-            <ion-icon name={{recordIcon}}>&nbsp;{{recordTitle}}</ion-icon>
-          </button> -->
-            <button ion-button block round color={{recordColor}} (click)="record(item)" *ngIf="!item.isRecord">
-              <ion-icon name={{recordIcon}}>&nbsp;{{recordTitle}}</ion-icon>
-            </button>
-            <button ion-button block round color={{recordColor}} (click)="endRecord(item)" *ngIf="item.isRecord">
-              <ion-icon name={{recordIcon}}>&nbsp;{{recordTitle}}</ion-icon>
+          </ion-col>--> 
+
+          <ion-col col-6 *ngIf="!isAutoPlay && isShowAll">
+            <button ion-button round ion-long-press block color={{recordColor}} [interval]="400"
+              (onPressStart)="record(item,'vocab')" (onPressEnd)="endRecord(item,'vocab')">
+              <ion-icon name={{recordIcon}}>&nbsp;Vocab</ion-icon>
             </button>
           </ion-col>
-         <!--   <ion-col  col-4>
+          <ion-col col-6 *ngIf="!isAutoPlay && isShowAll">
+            <button ion-button round ion-long-press block color={{recordColorCtx}} [interval]="400"
+              (onPressStart)="record(item,'context')" (onPressEnd)="endRecord(item,'context')">
+              <ion-icon name={{recordIcon}}>&nbsp;Context</ion-icon>
+            </button>
+          </ion-col>
+          <button ion-button round *ngIf="!isAutoPlay && !isShowAll && !selectedCtx" ion-long-press block color={{recordColor}} [interval]="400"
+          (onPressStart)="record(item,'vocab')" (onPressEnd)="endRecord(item,'vocab')">
+          <ion-icon name={{recordIcon}}>&nbsp;Vocab</ion-icon>
+        </button>
+
+        <button ion-button round *ngIf="!isAutoPlay && !isShowAll && selectedCtx" ion-long-press block color={{recordColorCtx}} [interval]="400"
+        (onPressStart)="record(item,'context')" (onPressEnd)="endRecord(item,'context')">
+        <ion-icon name={{recordIcon}}>&nbsp;Context</ion-icon>
+      </button>
+          <!--    <ion-col col-6 *ngIf="!isAutoPlay" >
+             <button ion-button block round color={{recordColor}} (click)="record(item,'vocab')" *ngIf="!item.isRecord">
+              <ion-icon name={{recordIcon}}>&nbsp;Vocab</ion-icon>
+            </button>
+            <button ion-button block round color={{recordColor}} (click)="endRecord(item,'vocab')" *ngIf="item.isRecord">
+              <ion-icon name={{recordIcon}}></ion-icon>
+            </button>
+           </ion-col>
+          <ion-col col-6 *ngIf="!isAutoPlay" >
+              <button ion-button block round color={{recordColorCtx}} (click)="record(item,'context')" *ngIf="!item.isRecordCtx">
+                <ion-icon name={{recordIcon}}>&nbsp;Context</ion-icon>
+              </button>
+              <button ion-button block round color={{recordColorCtx}} (click)="endRecord(item,'context')" *ngIf="item.isRecordCtx">
+                <ion-icon name={{recordIcon}}></ion-icon>
+              </button>
+            </ion-col>  -->
+          <!--   <ion-col  col-4>
            <button *ngIf="item.h[item.h.length-1]==='Y'" ion-button outline block color="secondary" (click)="playRecord(item)">
               {{(item.scores[item.scores.length-1].valueOf() * 100).toFixed(0)}}&nbsp;
               <ion-icon name="checkmark-circle"></ion-icon>
@@ -114,7 +176,7 @@
             </button>
           </ion-col> -->
         </ion-row>
-     
+
       </ion-slide>
     </ion-slides>
   </ion-card>
@@ -123,56 +185,67 @@
 <ion-footer>
 
   <ion-list>
-    <ion-item-sliding>
-      <ion-item>
-        <ion-card no-padding>
-          <ion-row no-padding>
-            <ion-col col-2>
-              <button ion-button outline block color={{theme}} (click)="slidePrevious()">
-                <ion-icon name="skip-backward"></ion-icon>
-              </button>
+    <ion-item>
+      <ion-row>
 
-            </ion-col>
-            <ion-col col-2>
-              <button ion-button outline block color={{theme}} (click)="slideNext()">
-                <ion-icon name="skip-forward"></ion-icon>
-              </button>
-            </ion-col>
-            <ion-col col-2>
-              <button no-padding ion-button block outline color="light" (click)="changeSpeed(item)" *ngIf="!selectedSlow">
-                <ion-icon name="turtle-press"></ion-icon>
-              </button>
-              <button no-padding ion-button block outline color={{theme}} (click)="changeSpeed(item)" *ngIf="selectedSlow">
-                <ion-icon name="turtle"></ion-icon>
-                <!-- for outline customizable
-                <ion-icon  name="turtle-press" ></ion-icon>-->
-              </button>
-            </ion-col>
-            <ion-col col-2>
-              <button ion-button outline block (click)="both()" color={{theme}} *ngIf="isBoth">Both </button>
-              <button ion-button outline block (click)="both()" color="light" style="color:gray; opacity:0.75;" *ngIf="!isBoth">Both </button>
+        <ion-col no-padding col-2>
+          <button ion-button block color={{theme}}  tooltip="Slow playback" arrow=true  positionV="bottom" (click)="changeSpeed()" *ngIf="!selectedSlow">
+            <ion-icon name="turtle-press"></ion-icon>
+          </button>
+          <button ion-button outline block color={{theme}} tooltip="Normal playback" arrow=true  positionV="bottom"  (click)="changeSpeed()" *ngIf="selectedSlow">
+            <ion-icon name="turtle"></ion-icon>
+            <!-- for outline customizable
+                      <ion-icon  name="turtle-press" ></ion-icon>-->
+          </button>
+        </ion-col>
+        <ion-col no-padding col-2>
+          <button ion-button block color="secondary" tooltip="Show context sentence" arrow=true  positionV="bottom" (click)="contextItem()" *ngIf="!selectedCtx">
+            <ion-icon name="quote"></ion-icon>
+          </button>
+          <button ion-button block outline color="secondary" tooltip="Hide context sentence" arrow=true  positionV="bottom"  (click)="contextItem()" *ngIf="selectedCtx">
+            <ion-icon name="quote"></ion-icon>
+          </button>
+        </ion-col>
 
 
-            </ion-col>
-            <ion-col col-2>
-              <button ion-button outline block (click)="startAutoPlay()" color={{theme}} *ngIf="!isAutoPlay">
-                <ion-icon name="play"></ion-icon>
-              </button>
-              <button ion-button outline block (click)="stopAutoPlay()"  color={{theme}} *ngIf="isAutoPlay">
-                <ion-icon name="square"></ion-icon>
-              </button>
-            </ion-col>
-            <ion-col col-2>
+        <ion-col no-padding col-2>
+          <button ion-button block (click)="both()" tooltip="Show and play both languages" arrow=true  positionV="bottom" color={{theme}} *ngIf="!isBoth">ENG </button>
+          <button ion-button outline block (click)="both()"  tooltip="Hide english" arrow=true  positionV="bottom" *ngIf="isBoth">ENG</button>
+        </ion-col>
+        <ion-col no-padding col-2>
+          <button ion-button outline block (click)="startAutoPlay()" tooltip="Start Auto play" arrow=true  positionV="bottom" color={{theme}} *ngIf="!isAutoPlay">
+            <ion-icon name="play">
+              </ion-icon>
+          </button>
+          <button ion-button outline block (click)="stopAutoPlay()" tooltip="Stop Auto play" arrow=true  positionV="bottom" color={{theme}} *ngIf="isAutoPlay">
+            <ion-icon name="square"></ion-icon>
+          </button>
+        </ion-col>
+
+        <ion-col no-padding col-2>
+          <button ion-button outline block color={{theme}} (click)="slidePrevious()">
+            <ion-icon name="arrow-back"></ion-icon>
+          </button>
+
+        </ion-col>
+        <ion-col no-padding col-2>
+          <button ion-button outline block color={{theme}} (click)="slideNext()">
+            <ion-icon name="arrow-forward"></ion-icon>
+          </button>
+        </ion-col>
+
+
+        <!---   <ion-col col-2>
               <button ion-button outline block (click)="shuffle()" color={{theme}} *ngIf="!isShuffle">
                 <ion-icon name="shuffle"></ion-icon>
               </button>
               <button ion-button outline block (click)="stopShuffle()" color={{theme}} *ngIf="isShuffle">
                 <ion-icon name="square"></ion-icon>
               </button>
-            </ion-col>
-          </ion-row>
-        </ion-card>
-      </ion-item>
+            </ion-col>  -->
+      </ion-row>
+    </ion-item>
+    <!--
       <ion-item-options side="right">
         <button ion-button color="primary" (click)="toggleEnglish()">
           <ion-icon name="close-circle"></ion-icon>
@@ -182,7 +255,6 @@
           <ion-icon name="text"></ion-icon>
           {{contextLabel}}
         </button>
-      </ion-item-options>
-    </ion-item-sliding>
+      </ion-item-options>-->
   </ion-list>
 </ion-footer>

@@ -16,7 +16,7 @@ export class QuizFillPage {
 	@ViewChild('slides') slides: any;
 	hasAnswered: boolean = false;
 	score: number = 0;
-	testItems = 10
+	testItems = 5
 	testMax: number
 	slideOptions: any;
 	quizSection: string = ''
@@ -88,23 +88,42 @@ export class QuizFillPage {
 	}
 
 	selectAnswer(answer, question) {
+		this.theme="dark";
 		this.hasAnswered = true;
 		answer.selected = true;
 		question.flashCardFlipped = true;
+		
+		this.recUtils.createElement(question.item.id,question.item)
 		if (answer.correct) {
 			this.score++;
-		}
-		this.recUtils.downPlay(this.url + "/" + question.flashCardAudio, this.audio)
-		console.log("audio " + this.url + "/" + question.flashCardAudio)
-		setTimeout(() => {
+		}	
+		this.recUtils.downPlay(this.url + "/" + question.flashCardAudio)
+		
+		let tDelay=3500
+		if (question.type=='Fill') tDelay=8000
+		this.myInter=setInterval(() => {
+			this.theme = localStorage.getItem("theme")
 			this.hasAnswered = false;
 			this.slides.lockSwipes(false);
 			this.slides.slideNext();
 			this.slides.lockSwipes(true);
 			answer.selected = false;
 			question.flashCardFlipped = false;
-		}, 2500);
+			clearInterval(this.myInter)
+		}, tDelay);
 	}
+	myInter=null;
+
+	 moveNext(question){
+		clearInterval(this.myInter)
+		this.theme = localStorage.getItem("theme")
+		this.hasAnswered = false;
+		this.slides.lockSwipes(false);
+		this.slides.slideNext();
+		this.slides.lockSwipes(true);
+		question.flashCardFlipped = false;
+	 }
+
 
 	restartQuiz() {
 		this.questions = []
@@ -125,8 +144,8 @@ export class QuizFillPage {
 			if (count === this.testItems) break
 			let q = new Question();
 			q.id = item.id
-			q.flashCardBack = item.fl
-			q.flashCardBackEng = item.en
+			q.flashCardBack = item.fl.toUpperCase().trim()
+			q.flashCardBackEng = item.en.toUpperCase().trim()
 			q.flashCardAudio = item.frr
 			q.item = item
 			let answers: Array<Answer> = []
@@ -152,10 +171,10 @@ export class QuizFillPage {
 			for (let it of itemChoice) {
 				if (ctr === 4) break
 				if (it.fl === item.fl) continue
-				choice.push({ "fl": it.fl, "en": it.en })
+				choice.push({ "fl": it.fl.toUpperCase(), "en": it.en.toUpperCase() })
 				ctr++
 			}
-			answers.push({ "answer": item.fl, "answerEn": item.en, "correct": true, "selected": false })
+			answers.push({ "answer": item.fl.toUpperCase(), "answerEn": item.en, "correct": true, "selected": false })
 			answers.push({ "answer": choice[0].fl.toString(), "answerEn": choice[0].en.toString(), "correct": false, "selected": false })
 			answers.push({ "answer": choice[1].fl.toString(), "answerEn": choice[1].en.toString(), "correct": false, "selected": false })
 			answers.push({ "answer": choice[2].fl.toString(), "answerEn": choice[2].en.toString(), "correct": false, "selected": false })

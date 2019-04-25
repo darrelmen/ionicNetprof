@@ -13,4 +13,5 @@ export class Question{
     answers:Array<Answer>;
     wordsRightOrder:Array<Answer>;
     item:Item
+    answer:string
 }

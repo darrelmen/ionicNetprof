@@ -15,42 +15,28 @@
           </span>  
         </h2>
         <h2><span><font color="blue" size="5"> {{'(' + item.en +')'}} </font></span></h2>
-        <h2><span><font  size="4">{{ item.ct}}</font></span></h2>
+       <!-- <h2><span><font  size="6">{{ item.ct}}</font></span></h2>-->
       </ion-card-content>
     </ion-slide>
   </ion-slides>
 </ion-card>
-      <ion-grid>
-
-          <ion-row>
-  
-              <ion-col width="25">
-                  <button ion-button icon-only clear (click)="slidePrevious()" color="dark"  >
-                      <ion-icon name="skip-backward"></ion-icon>
-                  </button>
-              </ion-col>
-  
-              <ion-col width="25">
-                  <button ion-button icon-only color="dark" clear *ngIf="!isAutoPlay" (click)="startAutoPlay()"  >
-                      <ion-icon name="play"></ion-icon>
-                  </button>
-                  <button ion-button icon-only color="dark" clear *ngIf="isAutoPlay" (click)="stopAutoPlay()"  >
-                      <ion-icon name="pause"></ion-icon>
-                  </button>
-              </ion-col>
-  
-              <ion-col width="25">
-                  <button ion-button icon-only color="dark" clear (click)="slideNext()" >
-                      <ion-icon name="skip-forward"></ion-icon>
-                  </button>
-              </ion-col>
-              <ion-col width="25">
-                  <button ion-button icon-only color="danger" clear (click)="dismiss()" >
-                      <ion-icon name="close-circle"></ion-icon>
-                  </button>
-              </ion-col>
-          </ion-row>
-  
-      </ion-grid>
-
+     
 </ion-content>
+<ion-footer>
+            <button ion-button large  clear  (click)="slidePrevious()" color="dark"  >
+                <ion-icon name="skip-backward"></ion-icon>
+            </button>
+             <button ion-button  large  color="dark" clear  *ngIf="!isAutoPlay" (click)="startAutoPlay()"  >
+                <ion-icon name="play"></ion-icon>
+            </button>
+            <button ion-button large  color="dark" clear  *ngIf="isAutoPlay" (click)="stopAutoPlay()"  >
+                <ion-icon name="pause"></ion-icon>
+            </button>
+            <button ion-button large  color="dark" clear (click)="slideNext()" >
+                <ion-icon name="skip-forward"></ion-icon>
+            </button>
+            <button ion-button large  color="danger" clear (click)="dismiss()" >
+                <ion-icon name="close-circle"></ion-icon>
+            </button>
+     
+</ion-footer>

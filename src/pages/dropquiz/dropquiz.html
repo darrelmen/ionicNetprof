@@ -12,8 +12,8 @@
 </ion-header>
 <ion-content>
     <div *ngIf="testCount < testItems">
-        <h3 padding text-center>{{testCount+1}} of {{questions.length}}
-            <font color='green'> ({{testLevel=='1' ? 'Easy' : testLevel=='2' ? 'Medium' :'Hardest'}}) </font>
+        <h3 padding text-center>{{testCount+1}} of {{questions.length}} 
+            <font color='green'> ({{testLevel=='1' ? 'Easy' : testLevel=='2' ? 'Medium' :'Hardest'}}) </font>&nbsp;{{quizSection}}
         </h3>
         <ion-card padding>
             <ion-col id="columns" col-auto no-padding *ngFor="let item of question.answers let i = index;" draggable="true">

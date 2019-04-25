@@ -1,0 +1,56 @@
+<!--
+  Generated template for the Record page.
+
+  See http://ionicframework.com/docs/v2/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header no-padding>
+ 
+  <ion-navbar hideBackButton color={{theme}}>
+    <ion-buttons left>
+      <button ion-button (click)="close()">
+        <ion-icon name="arrow-back">&nbsp;Back</ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title text-center tappable (click)="close()">{{siteName}} - ({{allItems.length}} items)</ion-title>
+    <!--  <button ion-button round (click)="close()">Close</button> -->
+  </ion-navbar>
+
+</ion-header>
+
+<ion-content>
+    <audio [src]=""  #audio></audio>
+    
+    
+    <ion-item>
+      <ion-label><ion-icon name="text"></ion-icon></ion-label>
+      <ion-input type="text"  autocorrect="off" autocapitalize="none" formControlName="vocab" placeholder="New Vocab/Context Sentence" clearOnEdit="true"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label><ion-icon name="text"></ion-icon></ion-label>
+      <ion-input  type="text" formControlName="english" placeholder="English Translation" autocorrect="off" autocapitalize="none" clearOnEdit="true"></ion-input>
+    </ion-item>
+
+
+    <ion-row style="padding:50px">
+            
+      <ion-col *ngIf="!isAutoPlay" >
+      <!--    <button  ion-button round ion-long-press block color={{recordColor}} [interval]="400"   (onPressStart)="record(item)" 
+        (onPressEnd)="endRecord(item)" >  
+        <ion-icon name={{recordIcon}}>&nbsp;{{recordTitle}}</ion-icon>
+      </button> -->
+        <button ion-button block round color={{recordColor}} (click)="record(item)" *ngIf="!item.isRecord">
+          <ion-icon name={{recordIcon}}>&nbsp;{{recordTitle}}</ion-icon>
+        </button>
+        <button ion-button block round color={{recordColor}} (click)="endRecord(item)" *ngIf="item.isRecord">
+          <ion-icon name={{recordIcon}}>&nbsp;{{recordTitle}}</ion-icon>
+        </button>
+      </ion-col>
+      
+      <ion-fab bottom  color="light" right>
+        <button ion-fab mini clear color="light" > <div id=container{{item.id}}  (click)="playRecord(item)"></div>
+        </button>
+      </ion-fab>
+  </ion-row>
+
+</ion-content>

@@ -13,7 +13,7 @@
 				</ion-list-header>
 				<ion-item no-padding>
 					<ion-range min="10" max={{testMax}} pin="true" [(ngModel)]="testItems" color="secondary">
-						<ion-label range-left>10</ion-label>
+						<ion-label range-left>5</ion-label>
 						<ion-label range-right>{{testMax}}</ion-label>
 					</ion-range>
 				</ion-item>
@@ -54,18 +54,18 @@
 		<div id=waveform{{i}} *ngIf="transOpt=='scribeContext'"></div>
 
 		<button ion-button color="secondary" (click)="playWave()" *ngIf="transOpt=='scribeContext' && isNotPlay">
-			<ion-icon name="play"></ion-icon>Listen
+			<ion-icon name="play"></ion-icon>&nbsp;Listen
 		</button>
 		<button ion-button color="dark" (click)="pauseWave()" *ngIf="transOpt=='scribeContext' && !isNotPlay">
-			<ion-icon name="pause"></ion-icon>Pause
+			<ion-icon name="pause"></ion-icon>&nbsp;Pause
 		</button>
 
 		<div id=waveform{{i}} *ngIf="transOpt=='scribeVocab'"></div>
 		<button ion-button color="secondary" (click)="playWave()" *ngIf="transOpt=='scribeVocab' && isNotPlay">
-			<ion-icon name="play">Listen</ion-icon>
+			<ion-icon name="play">&nbsp;Listen</ion-icon>
 		</button>
 		<button ion-button color="dark" (click)="pauseWave()" *ngIf="transOpt=='scribeVocab' && !isNotPlay">
-				<ion-icon name="pause"></ion-icon>Pause
+				<ion-icon name="pause"></ion-icon>&nbsp;Pause
 			</button>
 		<button ion-button (click)="checkFlashCard(inputValue,item.ct,i)" *ngIf="transOpt=='scribeContext'">Check</button>
 		<button ion-button (click)="checkFlashCard(inputValue,item.fl,i)" *ngIf="transOpt=='scribeVocab'">Check</button>

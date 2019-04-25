@@ -16,13 +16,14 @@ export class QuizTransPage {
 	@ViewChild('slides') slides: any;
 	hasAnswered: boolean = false;
 	score: number = 0;
-	testItems = 10
-	testMax: number
+	testItems = 5
+	testMax=100
 	slideOptions: any;
 	public questions = []
 	url: string
 	items: Array<Item>;
 	transOpt: any = "scribeContext"
+	isNotPlay:boolean = true
 
 	constructor(public navCtrl: NavController, public db: Storage, public recUtils: RecordUtils, public alertCtrl: AlertController,
 		public utils: CommonUtils, public platform: Platform,public file:File) {
@@ -213,7 +214,7 @@ export class QuizTransPage {
 
 	// }
 
-	isNotPlay = true
+	
 	playWave() {
 		//this.wavesurfer.on('ready', function () {
 			console.log("wave ")
@@ -221,10 +222,13 @@ export class QuizTransPage {
 		//});
 		
 		this.isNotPlay = false
-		this.wavesurfer.on('finish', function () {
-			this.isNotPlay = true
-			console.log("wave end ")
-		});
+			this.wavesurfer.on('finish', function ()  {
+				//this.isNotPlay = true
+				console.log("wave end ")
+				return true
+			});
+		
+		
 	}
 	pauseWave() {
 		this.wavesurfer.pause();

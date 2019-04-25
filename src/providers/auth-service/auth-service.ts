@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 //import {   RequestOptions, RequestOptionsArgs } from '@angular/http';
-import { Platform, normalizeURL } from 'ionic-angular';
+import { Platform, } from 'ionic-angular';
 import {
-    HttpHeaders, HttpClient, HttpParams,
-    HttpResponse
+    HttpHeaders, HttpClient, HttpHandler,HttpRequest
 } from '@angular/common/http';
 //import { RequestOptions , RequestOptionsArgs} from '@angular/common';
 //import { JwtHelper, tokenNotExpired } from 'angular2-jwt';
-import { TimeoutError } from 'rxjs';
-import { Observable } from 'rxjs/Observable'
+//import { TimeoutError } from 'rxjs';
+//import { Observable } from 'rxjs/Observable'
 import 'rxjs/add/operator/map'
 import 'rxjs/add/operator/shareReplay';
 import CryptoJS from 'crypto-js';
@@ -19,21 +18,31 @@ import { HTTP } from '@ionic-native/http'
 import { File } from '@ionic-native/file';
 import { FileTransfer, FileUploadOptions, FileTransferObject } from '@ionic-native/file-transfer';
 
+//import {AuthInterceptor} from '../auth-interceptor/auth-interceptor';
+
 import { Item } from '../../model/item'
 //import { Contents } from '../../model/contents'
 //import { Child } from '../../model/child'
 import { Sites } from '../../model/Sites'
 //import {sign} from 'jsonwebtoken';
-
+import { CookieService } from 'ngx-cookie-service';
+import { toBase64String } from '@angular/compiler/src/output/source_map';
+import { Binary } from '@angular/compiler';
+//import fsa from 'fs-extra'
 
 @Injectable()
 export class AuthService {
     LOGIN_URL: string = "http://10.102.12.199:3001/sessions/create";   //10.0.2.2 same as localhost, used when running emulator 10.102.12.199 --my actual ip
     SIGNUP_URL: string = "/scoreServlet";
-    SITES_URL: string = "https://netprof.ll.mit.edu/netprof/scoreServlet?projects" // "https://np.ll.mit.edu/sites.json";
-    NET_URL: string = "https://netprof.ll.mit.edu/netprof"
+    SITES_URL: string = "https://netprof.ll.mit.edu/netprof/scoreServlet?projects" // "https://netprof.ll.mit.edu/netprof/scoreServlet?projects" // "https://np.ll.mit.edu/sites.json";
+    NET_URL: string = "https://netprof.ll.mit.edu/netprof" // "https://netprof.ll.mit.edu/netprof"
+ //   SITES_URL: string = "https://10.10.3.215/netprof/scoreServlet?projects" // "https://netprof.ll.mit.edu/netprof/scoreServlet?projects" // "https://np.ll.mit.edu/sites.json";
+  //  NET_URL: string = "https://10.10.3.215/netprof" // "https://netprof.ll.mit.edu/netprof"
+
     SCORE_SERVLET: string = "/scoreServlet?nestedChapters";
     RECORD_SERVLET: string = "/scoreServlet";
+    RECORD_SERVLET2: string = "/scoreServlet/h2";
+   
     FORGOT_PASS: string = "/scoreServlet?resetPassword="
     FORGOT_USER: string = "/scoreServlet?forgotUsername="
     SITE_ID: string
@@ -62,7 +71,9 @@ export class AuthService {
         public db: Storage,
         public device: Device,
         public transfer: FileTransfer,
-        public file: File
+        public file: File,
+        public cookie:CookieService
+   //     public authIntercept:AuthInterceptor
     ) {
 
         let token = localStorage.getItem('id_token');
@@ -116,12 +127,17 @@ export class AuthService {
         if (credentials.username.length < 5) credentials.username = credentials.username + "_"  //hash password should be uppercase
 
         console.log(" proj id " + credentials.site.id.toString())
-        let header = new HttpHeaders({
-            "Content-Type": "application/json",
-            "userid": credentials.username, "pass": credentials.password, "projid": credentials.site.id.toString()
-        });
+        // let header = new HttpHeaders().set(
+        //     "Content-Type", "application/x-www-form-urlencoded").set
+        //     ("userid", credentials.username.toString()).set("pass", credentials.password.toString()).set("projid", credentials.site.id.toString()
+        //     );
+            let header = new HttpHeaders({
+                "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "X-Requested-With"
+                , "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS,Set-Cookie","userid": credentials.username.toString(),
+                "pass": credentials.password.toString(),"projid":credentials.site.id.toString()
+            });
         //let testURL = "https://np.ll.mit.edu/npfClassroomPashto1/scoreServlet?hasUser=" + cred.hasUser + "&p=" + hash
-        if (this.platform.is("core") || this.platform.is("mobileweb")) {
+        if (this.platform.is("core")) {
             //  url = "/npfClassroom" + this.SITE_NAME + "/scoreServlet?hasUser=" + credentials.username + "&p=" + hash
             url = "/scoreServlet?hasUser=" + credentials.username + "&p=" + credentials.password
 
@@ -129,42 +145,109 @@ export class AuthService {
             // url = credentials.site.url + "/scoreServlet?hasUser=" + credentials.username + "&p=" + hash
             url = this.NET_URL + "/scoreServlet?hasUser=" + credentials.username + "&p=" + credentials.password
         }
-        // for testing only web only
-        // return this.http.get(url, { headers: header, observe: 'response', withCredentials: true })
-        //     .map((res: any) => {
-        //         // login successful if there's a jwt token in the response (.id_token is defined in the auth service API - this.LOGIN_URL)
-        //         console.log("COOK0 " + window.document.cookie)
-        //         // var setCook =getCookie('JSESSIONID')
-        //         // console.log( "cook " + setCook)
-        //          console.log("session " + JSON.parse(JSON.stringify(res)).jsessionid)
-        //         this.user = credentials.username
-        //         //         localStorage.setItem("ck", this.httpNative.getCookieString(url))
+        console.log(" url " + url)
+       
+        //         var data = null;
 
-        //         localStorage.setItem('username', this.user);
-        //         localStorage.setItem('userid', res.body.userid);
-        //         localStorage.setItem('siteid', credentials.site.id.toString());
-        //         this.USER_ID = res.userid
-        //         this.SITE_ID = credentials.site.id.toString()
-        //         console.log("user id " + res.body.userid)
-        //         console.log("pass " + res.body.passwordCorrect)
-        //         // let token = res.json().id_token
-        //         //  console.log("res " + token)
-        //         if (res.body.passwordCorrect === "TRUE") {
-        //             //    console.log("res " + token)
-        //             //     this.authSuccess(token);
-        //             // return true to indicate successful login
-        //             //this.getContents(credentials)
-        //             return true
-        //         } else {
-        //             // return false to indicate failed login
-        //             return false;
-        //         }
-        //     })
+        //         var xhr = new XMLHttpRequest();
+
+
+        //         xhr.onreadystatechange = function() {
+        //             if (xhr.readyState === 4) {
+        //               xhr.response;
+        //               var xxhr = new XMLHttpRequest();
+        //                   xxhr.withCredentials = true;
+        //                   xxhr.onreadystatechange = function() {
+        //                   if (xxhr.readyState === 4) {
+        //                     xxhr.response;
+        //                   } 
+        //                 }
+        //                   xxhr.open("GET", "/scoreServlet?nestedChapters");
+        //                    xxhr.setRequestHeader("projid", "101");
+        //                    xxhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        //                    xxhr.setRequestHeader('Access-Control-Allow-Origin','https://netprof.ll.mit.edu/netprof');
+        //         xxhr.setRequestHeader('Access-Control-Allow-Methods',' GET, POST');
+        //        xxhr.setRequestHeader('Access-Control-Allow-Credentials',' true');
+        //        xxhr.setRequestHeader('Access-Control-Expose-Headers','true');
+
+        //                   xxhr.send("");
+        //             }
+        //           }
+
+        //         xhr.open("GET", "/scoreServlet?hasUser=demo&p=demo",);
+        //         xhr.withCredentials = true;
+        //         xhr.setRequestHeader("userid", "demo_");
+        //         xhr.setRequestHeader("pass", "demo");
+        //         xhr.setRequestHeader("projid", "101");
+        //         xhr.setRequestHeader("cache-control", "no-cache");
+
+        //         xhr.setRequestHeader('Access-Control-Allow-Origin','https://netprof.ll.mit.edu/netprof');
+        //         xhr.setRequestHeader('Access-Control-Expose-Headers','true');
+
+        //         xhr.setRequestHeader('Access-Control-Allow-Methods',' GET, POST');
+        //         xhr.setRequestHeader('Access-Control-Allow-Credentials',' true');
+        //         xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        //  xhr.send("");
+        // return true
+        // for testing only web only
+       // let next:HttpHandler
+
+        // update: {
+        //     headers?: HttpHeaders;
+        //     reportProgress?: boolean;
+        //     params?: HttpParams;
+        //     responseType?: "arraybuffer" | "blob" | "json" | "text";
+        //     withCredentials?: boolean;
+        //     body?: any;
+        //     method?: string;
+        //     url?: string;
+        //     setHeaders?: {
+        //         ...;
+        //     };
+        //     setParams?: {
+        
+    //         const req = new HttpRequest("GET",url,{header,responseType: 'text',withCredentials:true});
+    // // this.http.request
+    // this.authIntercept.intercept(req,next).subscribe((res)=>{
+    //     res
+    // })  
+    // return this.http.get(url, { headers: header, observe: 'response', responseType: 'text', withCredentials: true })
+        
+    //     .map((res: any) => {
+    //             // login successful if there's a jwt token in the response (.id_token is defined in the auth service API - this.LOGIN_URL)
+    //             console.log("COOK0 " + window.document.cookie)
+    //             // var setCook =getCookie('JSESSIONID')
+    //             // console.log( "cook " + setCook)
+    //              console.log("session " +JSON.parse(res.body).session)
+    //             this.user = credentials.username
+    //             //         localStorage.setItem("ck", this.httpNative.getCookieString(url))
+    //             localStorage.setItem('username', this.user);
+    //             localStorage.setItem('userid', JSON.parse(res.body).userid);
+    //             localStorage.setItem('siteid', credentials.site.id.toString());
+    //             localStorage.setItem('session',JSON.parse(res.body).session)
+    //             this.cookie.set("JSESSIONID",JSON.parse(res.body).session)
+    //             this.USER_ID = res.userid
+    //             this.SITE_ID = credentials.site.id.toString()
+    //             console.log("user id " + JSON.parse(res.body).userid)
+    //             console.log("pass " + JSON.parse(res.body).passwordCorrect)
+    //             // let token = res.json().id_token
+    //             //  console.log("res " + token)
+    //             if (JSON.parse(res.body).passwordCorrect === "TRUE") {
+    //                 //    console.log("res " + token)
+    //                 //     this.authSuccess(token);
+    //                 // return true to indicate successful login
+    //                 //this.getContents(credentials)
+    //                 return true
+    //             } else {
+    //                 // return false to indicate failed login
+    //                 return false;
+    //             }
+    //         })
 
         // for deployment
         this.httpNative.setDataSerializer('json');
-        // this.httpNative.acceptAllCerts(true)
-        this.httpNative.setSSLCertMode("pinned")
+        this.httpNative.setSSLCertMode("nocheck")
+        //this.httpNative.setSSLCertMode("pinned")
         return this.httpNative.get(url, {},
             { "Content-Type": "application/json", "userid": credentials.username, "pass": credentials.password, "projid": credentials.site.id.toString() })
             .then((data) => {
@@ -183,9 +266,9 @@ export class AuthService {
                 // console.log("cookie  " + this.httpNative.getCookieString(url))
                 localStorage.setItem("siteid", credentials.site.id.toString())
 
-                localStorage.setItem("ck", this.httpNative.getCookieString(url))
+                localStorage.setItem("session", this.httpNative.getCookieString(url))
                 // let token = res.json().id_token
-                //  console.log("res " + token)
+                console.log("res check")
                 if (res.passwordCorrect === "TRUE") {
                     //    console.log("res " + token)
                     //     this.authSuccess(token);
@@ -231,7 +314,7 @@ export class AuthService {
         //         //for deployment
         this.httpNative.setDataSerializer('urlencoded');
         this.httpNative.setSSLCertMode("nocheck")
-        return this.httpNative.post("https://netprof.ll.mit.edu/netprof/scoreServlet", {},
+        return this.httpNative.post(signUrl, {},
             {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "user": data.username,
@@ -286,16 +369,22 @@ export class AuthService {
 
 
     getSites() {
-        // return new Promise((resolve, reject) => {
-       // this.checkPlatform()
-        // if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
-        //for testing   
-        // return this.http.get(this.SITES_URL, { headers: this.contentHeader, withCredentials: true })
-        //     .map((res: Sites) => res)
-        //   //} else {
 
+
+        // return new Promise((resolve, reject) => {
+        // this.checkPlatform()
+        let siteUrl
+         if (this.platform.is("core") || this.platform.is("mobileweb")) {  //|| this.platform.is("android") -- for emulator and livereload
+         siteUrl="/scoreServlet?projects"
+        } else {
+            siteUrl=this.SITES_URL
+        }
+        
+        // return this.http.get(siteUrl, { headers: this.contentHeader, withCredentials: true })
+        //   .map((res) => res)
+        
         // for deployemnt
-          this.httpNative.setDataSerializer('json');
+        this.httpNative.setDataSerializer('json');
         //this.httpNative.acceptAllCerts(true)
         this.httpNative.setSSLCertMode("nocheck")
         return this.httpNative.get(this.SITES_URL, {}, { "Content-Type": "application/json" })
@@ -388,7 +477,8 @@ export class AuthService {
             url = this.NET_URL + this.SCORE_SERVLET
         }
         //for testing
-        // let header = new HttpHeaders({ "Content-Type": "application/json", "userid": "demo_", "pass": "query.password", "projid": query.id.toString() })
+        let header = new HttpHeaders({ "Content-Type": "application/x-www-form-urlencoded", "userid": "demo_", "pass": "domino22", "projid": query.id.toString() })
+       
         // return this.http.get(url, { headers: header, withCredentials: true })
         //     .map((res) => {
         //         console.log("query name " + query.name)
@@ -398,8 +488,8 @@ export class AuthService {
 
         // for deployment
         let localSiteId = localStorage.getItem("siteid")
-       
-        console.log("lang " + query.language + "   new id " + query.id + " current id " + this.SITE_ID + "localsite " + localSiteId + " pass " + this.PAS_ID + " user " + this.USER_ID)
+
+        console.log("url " + url + " lang " + query.language + "   new id " + query.id + " current id " + this.SITE_ID + "localsite " + localSiteId +  " user " + this.USER_ID)
         this.httpNative.setDataSerializer('json');
         //  this.httpNative.acceptAllCerts(true)
         this.httpNative.setSSLCertMode("nocheck")
@@ -420,7 +510,8 @@ export class AuthService {
                 { "Content-Type": "application/json", "userid": username, "pass": this.PAS_ID.toString(), "projid": query.id.toString() })
                 .then((dat) => {
                     localStorage.setItem("siteid", query.id.toString())
-
+                    localStorage.setItem("playOption",'1')
+                    //store cookie
                     localStorage.setItem("ck", this.httpNative.getCookieString(this.NET_URL + "/scoreServlet?hasUser=" + username + "&p=" + this.PAS_ID))
                     let res = JSON.parse(dat.data)
                     if (res.passwordCorrect === "TRUE") {
@@ -471,15 +562,19 @@ export class AuthService {
         name: string
         count?: number
     }> = []
+    dialect?: Array<{
+        name: string
+        count?: number
+    }> = []
 
-
-    parseItemsFromDB(siteName, content) {
+    parseItemsFromDB(siteName, content: any) {
         this.items = []
         this.lessonMenu = []
         this.grammar = []
         this.topic = []
         this.subtopic = []
-        if (content.content[0].children.length == 0) {
+        this.dialect = []
+        if (content==null || content.content[0].children == undefined  || content.content[0].children.length==0) {
             // 1 level hierarchy 
 
             for (let items of content.content) {
@@ -487,7 +582,6 @@ export class AuthService {
                 let lessonId: string
                 lesson = items.type
                 lessonId = items.name
-
                 let count = 0
                 for (let item of items.items) {
                     let tmpItem: Item = item
@@ -498,37 +592,53 @@ export class AuthService {
                     tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + item.fl + " " + item.en + " " + item.ct + " " + item.tl
                     //for scores and history, needs to add manually otherwise it will not show up later although it is already initialized. 
                     // make sense you dont need to add what you dont need
+                    tmpItem.timeRecord=""
                     tmpItem.s = "0"
                     tmpItem.h = []
                     tmpItem.scores = []
                     tmpItem.isRecord = false
                     tmpItem.isScored = false
                     tmpItem.isAddPlaylist = false
-                    // for topics, subtopics and grammar menus
+                    // for topics, subtopics , dialects and grammar menus
                     if (item.Topic != undefined) {
                         tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + item.fl + " "
-                            + item.en + " " + item.ct + " " + item.tl + " " + item.Topic + " " + item.subtopic + item.Grammar + " "
+                            + item.en + " " + item.ct + " " + item.tl + " " + item.Topic + " " + item.subtopic + item.Grammar + " " + item.Dialect
 
                         let strTopic: string = item.Topic
-                        let strSubTopic = item.subtopic
-                        // let indxTopic = this.topic.indexOf({ name: strTopic })
-                        let indxTopic = this.topic.findIndex(x => x.name.trim() == strTopic.trim())
+                        let strSubTopic = ""
 
-                        let indxSubTopic = -1
-                        if (indxTopic > -1) {
-                            // indxSubTopic = this.topic[indxTopic].subtopic.indexOf({ name: strSubTopic })
-                            indxSubTopic = this.topic[indxTopic].subtopic.findIndex(x => x.name.trim() == strSubTopic.trim())
-                        }
-                        this.subtopic = []
-                        if (indxTopic === -1 && indxSubTopic === -1) {
-                            this.subtopic.push({ name: strSubTopic, count: 1 })
-                            this.topic.push({ name: strTopic, count: 1, subtopic: this.subtopic })
-                        } else if (indxTopic > -1 && indxSubTopic === -1) {
-                            this.topic[indxTopic].count = this.topic[indxTopic].count + 1
-                            this.topic[indxTopic].subtopic.push({ name: strSubTopic, count: 1 })
+                        // check whether there is a subtopic
+                        if (item.subtopic != undefined) {
+                            strSubTopic = item.subtopic
+
+                            // let indxTopic = this.topic.indexOf({ name: strTopic })
+                            let indxTopic = this.topic.findIndex(x => x.name.trim() == strTopic.trim())
+
+                            let indxSubTopic = -1
+                            if (indxTopic > -1) {
+                                // indxSubTopic = this.topic[indxTopic].subtopic.indexOf({ name: strSubTopic })
+                                indxSubTopic = this.topic[indxTopic].subtopic.findIndex(x => x.name.trim() == strSubTopic.trim())
+                            }
+                            this.subtopic = []
+                            if (indxTopic === -1 && indxSubTopic === -1) {
+                                this.subtopic.push({ name: strSubTopic, count: 1 })
+                                this.topic.push({ name: strTopic, count: 1, subtopic: this.subtopic })
+                            } else if (indxTopic > -1 && indxSubTopic === -1) {
+                                this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                                this.topic[indxTopic].subtopic.push({ name: strSubTopic, count: 1 })
+                            } else {
+                                this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                                this.topic[indxTopic].subtopic[indxSubTopic].count = this.topic[indxTopic].subtopic[indxSubTopic].count + 1
+                            }
                         } else {
-                            this.topic[indxTopic].count = this.topic[indxTopic].count + 1
-                            this.topic[indxTopic].subtopic[indxSubTopic].count = this.topic[indxTopic].subtopic[indxSubTopic].count + 1
+                            let indxTopic = this.topic.findIndex(x => x.name.trim() == strTopic.trim())
+                            if (indxTopic === -1) {
+                                this.topic.push({ name: strTopic, count: 1 })
+                            } else if (indxTopic > -1) {
+                                this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                            } else {
+                                this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                            }
                         }
                     }
                     if (item.Grammar != undefined) {
@@ -539,6 +649,18 @@ export class AuthService {
                         } else {
                             this.grammar[indxGrammar].count = this.grammar[indxGrammar].count + 1
                         }
+                    }
+                    if (item.Dialect != undefined) {
+                        let strDialect: string = item.Dialect
+                        let indxDialect = this.dialect.findIndex(x => x.name.trim() == strDialect.trim())
+                        if (indxDialect == -1) {
+                            this.dialect.push({ name: strDialect, count: 1 })
+                        } else {
+                            this.dialect[indxDialect].count = this.dialect[indxDialect].count + 1
+                        }
+                        tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + item.fl + " "
+                            + item.en + " " + item.ct + " " + item.tl + " " + item.Topic + " " + item.subtopic + item.Grammar + " " + item.Dialect
+
                     }
                     this.items.push(tmpItem)
                     count++
@@ -564,6 +686,7 @@ export class AuthService {
                 let lessonId = children.name
                 let lessonTotal = 0
                 this.lessonMenu.push({ type: lesson, name: lessonId, count: lessonTotal, sublesson: [] })
+                //sublessons
                 for (let items of children.children) {
                     let sublesson = items.type
                     let sublessonId = items.name
@@ -581,6 +704,7 @@ export class AuthService {
                         // tmpItem.searchTopic= lesson +" " + sublesson + " " + item.ct + " " + item.fl + " " + item.en
                         //for scores and history, needs to add manually otherwise it will not show up later although it is already initialized. 
                         // make sense you dont need to add what you dont need
+                        tmpItem.timeRecord=""
                         tmpItem.s = "0"
                         tmpItem.h = []
                         tmpItem.scores = []
@@ -588,31 +712,46 @@ export class AuthService {
                         tmpItem.isScored = false
                         tmpItem.isAddPlaylist = false
 
-                        // for topics, subtopics and grammar menus
+                        // for topics, subtopics, dialects and grammar menus
                         if (item.Topic != undefined) {
                             tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + sublesson + " " + sublessonId + " " + item.fl + " "
-                                + item.en + " " + item.ct + " " + item.tl + " " + item.Topic + " " + item.subtopic + item.Grammar + " "
+                                + item.en + " " + item.ct + " " + item.tl + " " + item.Topic + " " + item.subtopic + " " + item.Grammar + " " + item.Dialect
 
                             let strTopic: string = item.Topic
-                            let strSubTopic = item.subtopic
-                            // let indxTopic = this.topic.indexOf({ name: strTopic })
-                            let indxTopic = this.topic.findIndex(x => x.name.trim() == strTopic.trim())
+                            let strSubTopic = ""
 
-                            let indxSubTopic = -1
-                            if (indxTopic > -1) {
-                                // indxSubTopic = this.topic[indxTopic].subtopic.indexOf({ name: strSubTopic })
-                                indxSubTopic = this.topic[indxTopic].subtopic.findIndex(x => x.name.trim() == strSubTopic.trim())
-                            }
-                            this.subtopic = []
-                            if (indxTopic === -1 && indxSubTopic === -1) {
-                                this.subtopic.push({ name: strSubTopic, count: 1 })
-                                this.topic.push({ name: strTopic, count: 1, subtopic: this.subtopic })
-                            } else if (indxTopic > -1 && indxSubTopic === -1) {
-                                this.topic[indxTopic].count = this.topic[indxTopic].count + 1
-                                this.topic[indxTopic].subtopic.push({ name: strSubTopic, count: 1 })
+                            // check whether there is a subtopic
+                            if (item.subtopic != undefined) {
+                                strSubTopic = item.subtopic
+
+                                // let indxTopic = this.topic.indexOf({ name: strTopic })
+                                let indxTopic = this.topic.findIndex(x => x.name.trim() == strTopic.trim())
+
+                                let indxSubTopic = -1
+                                if (indxTopic > -1) {
+                                    // indxSubTopic = this.topic[indxTopic].subtopic.indexOf({ name: strSubTopic })
+                                    indxSubTopic = this.topic[indxTopic].subtopic.findIndex(x => x.name.trim() == strSubTopic.trim())
+                                }
+                                this.subtopic = []
+                                if (indxTopic === -1 && indxSubTopic === -1) {
+                                    this.subtopic.push({ name: strSubTopic, count: 1 })
+                                    this.topic.push({ name: strTopic, count: 1, subtopic: this.subtopic })
+                                } else if (indxTopic > -1 && indxSubTopic === -1) {
+                                    this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                                    this.topic[indxTopic].subtopic.push({ name: strSubTopic, count: 1 })
+                                } else {
+                                    this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                                    this.topic[indxTopic].subtopic[indxSubTopic].count = this.topic[indxTopic].subtopic[indxSubTopic].count + 1
+                                }
                             } else {
-                                this.topic[indxTopic].count = this.topic[indxTopic].count + 1
-                                this.topic[indxTopic].subtopic[indxSubTopic].count = this.topic[indxTopic].subtopic[indxSubTopic].count + 1
+                                let indxTopic = this.topic.findIndex(x => x.name.trim() == strTopic.trim())
+                                if (indxTopic === -1) {
+                                    this.topic.push({ name: strTopic, count: 1 })
+                                } else if (indxTopic > -1) {
+                                    this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                                } else {
+                                    this.topic[indxTopic].count = this.topic[indxTopic].count + 1
+                                }
                             }
                         }
                         if (item.Grammar != undefined) {
@@ -624,10 +763,23 @@ export class AuthService {
                                 this.grammar[indxGrammar].count = this.grammar[indxGrammar].count + 1
                             }
                         }
+
+                        if (item.Dialect != undefined) {
+                            let strDialect: string = item.Dialect
+                            let indxDialect = this.dialect.findIndex(x => x.name.trim() == strDialect.trim())
+                            if (indxDialect == -1) {
+                                this.dialect.push({ name: strDialect, count: 1 })
+                            } else {
+                                this.dialect[indxDialect].count = this.dialect[indxDialect].count + 1
+                            }
+                            tmpItem.searchTopic = item.id + " " + lesson + " " + lessonId + " " + sublesson + " " + sublessonId + " " + item.fl + " "
+                                + item.en + " " + item.ct + " " + item.tl + " " + item.Topic + " " + item.subtopic + item.Grammar + " " + item.Dialect
+
+                        }
                         this.items.push(tmpItem)
                         count++
-
                     }
+
                     this.lessonMenu[lessIdx].sublesson.push({ type: sublesson, name: sublessonId, count: count })
                     lessonTotal++
 
@@ -641,9 +793,7 @@ export class AuthService {
             }
         }
 
-        this.items = this.items.sort(function (a, b) {
-            return a.fl.localeCompare(b.fl)
-        })
+       
 
         this.lessonMenu = this.lessonMenu.sort(function (a, b) {
             return parseFloat(a.name) - parseFloat(b.name);
@@ -652,6 +802,8 @@ export class AuthService {
         this.db.set(siteName + "menu", this.lessonMenu)
         this.db.set(siteName + "topic", this.topic)
         this.db.set(siteName + "grammar", this.grammar)
+        this.db.set(siteName + "dialect", this.dialect)
+        console.log("load success")
     }
 
 
@@ -687,17 +839,16 @@ export class AuthService {
         console.log("url " + this.NET_URL + " userid " + userid + " lesson " + lesson + " site_id " + this.SITE_ID)
         if (this.platform.is("core") || this.platform.is("mobileweb")) {
             scoreUrl = "/scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson
-            //   return this.http.get(scoreUrl, { headers: this.contentHeader })
-            //       .map((res) => res)
         } else {
             scoreUrl = this.NET_URL + "/scoreServlet?request=chapterHistory&user=" + userid + "&" + lesson
             console.log("scoreUrl " + scoreUrl)
             let head = new HttpHeaders({
                 "Content-Type": "application/json", "projid": this.SITE_ID
             })
-            //for testng
+        }
+        //for testng
             // return this.http.get(scoreUrl, {headers: head})
-            // .map((res) => res)
+            // .map((res:JSON) => res)
 
             //for deployment
             this.httpNative.setDataSerializer('json');
@@ -710,32 +861,79 @@ export class AuthService {
                 })
                 .catch(error => {
                     console.log("Score upload error " + error);
+                    return null
                 });
 
             //https://np.ll.mit.edu/npfClassroomCM/scoreServlet?request=chapterHistory&user=171&Unit=2&Lesson=8
-        }
+        
     }
 
 
-    postRecording(recordFile, ex_id: string, filename) {
+    postRecording(recordFile, ex_id: string, filename, newText?: string) {
         this.USER_ID = localStorage.getItem('userid')
+        this.SITE_ID= localStorage.getItem("siteid")
+       
         var recordUrl
+
         if (this.platform.is("core") || this.platform.is("mobileweb")) {
-            //for testing Chinese
-            recordUrl = "/scoreServlet"
-        } else {
-            recordUrl = this.NET_URL + "/scoreServlet"
+            //for languages in Hydra 2 MSA,Levantine,Korean, Russian
+            if(this.SITE_ID=='85' || this.SITE_ID=='88' || this.SITE_ID=='89' || this.SITE_ID=='90') {
+                recordUrl = this.RECORD_SERVLET2
+            } else {
+                recordUrl = this.RECORD_SERVLET
+            }
+         } else {
+            if(this.SITE_ID=='85' || this.SITE_ID=='88' || this.SITE_ID=='89' || this.SITE_ID=='90') {
+                recordUrl = this.NET_URL + this.RECORD_SERVLET2
+            } else {
+                recordUrl = this.NET_URL + this.RECORD_SERVLET
+            }
         }
         // console.log("filePath to upload " + recordFile)
         // console.log("servlet url " + recordUrl)
-        let cookie = localStorage.getItem('ck')
+//         console.log(ex_id  + " " + recordFile +" "+ filename)
+//        recordFile="/Users/darreljohnmendoza/desktop/743856_rec1.wav"
+//        filename='743856_rec1.wav'
+//         let headers:HttpHeaders = new HttpHeaders( {
+//             "user": this.USER_ID, "deviceType": this.device.platform, "device": this.device.uuid,"mimeType": "audio/wav"
+//                , "exercise": ex_id, "request": "decode", "reqid": "1","projid": this.SITE_ID
+//         })
+//        // let cookie = localStorage.getItem('ck')
+//        headers.delete("Content-Type")
+//        let fsr=new FileReader()
+//         var formData = new FormData();
+//         formData.append("file",recordFile,filename);
+//         console.log(formData  + " " + recordFile +" "+ filename)
+
+//        let fs = require('fs');
+// // return fs.readFile(recordFile, (err, data) => {
+//     // Data is a Buffer object 
+//  //       data
+//  //let audioBlob = new Blob(recordFile)
+
+//         return this.http.post(recordUrl,fsr.readAsDataURL(recordFile),{headers:headers,reportProgress:true})
+   
+
+
+        // use ft.upload
+        
+        let cookie =localStorage.getItem("session")
+        console.log("get Cookie " + cookie)
+        console.log("url  " + recordUrl)
+        console.log('site id '  + this.SITE_ID)
         let options: FileUploadOptions = {
             fileKey: 'file',
             fileName: filename,
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded", "user": this.USER_ID, "deviceType": this.device.platform, "device": this.device.uuid
-                , "exercise": ex_id, "request": "decode", "reqid": "1", "projid": this.SITE_ID, "cookie": cookie
+                , "exercise": ex_id, "request": "decode", "reqid": "1", "cookie": cookie, "projid": this.SITE_ID
             },
+
+            // for new items         
+            //     headers: {
+            //        "Content-Type": "application/x-www-form-urlencoded", "user": this.USER_ID, "deviceType": this.device.platform, "device": this.device.uuid
+            //        , "exercise": ex_id, "request": "align", "reqid": "1", "projid": this.SITE_ID, "Cookie": cookie,"language":"tagalog","full":"full","exerciseText":btoa(newText)
+            //    },
             mimeType: "audio/x-wav",
 
         }
@@ -751,6 +949,8 @@ export class AuthService {
                 console.log("Record Score Error " + error);
                 return null
             });
+
+
 
 
         //for deployment  --- not in place

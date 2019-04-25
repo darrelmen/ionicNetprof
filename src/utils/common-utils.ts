@@ -82,6 +82,7 @@ export class CommonUtils {
   }
 
 
+  
   showAlert(user?, title?: string, subTitle?: string) {
     let alert = this.alertCtrl.create({
       title: title  // + user.value
@@ -97,6 +98,7 @@ export class CommonUtils {
     });
     alert.present();
   }
+
 
   statusActionSheet() {
     let actionSheet = this.actionSheetCtrl.create({

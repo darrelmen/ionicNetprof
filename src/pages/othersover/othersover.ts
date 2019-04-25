@@ -1,8 +1,10 @@
-import { NavController, ViewController, Events, NavParams, Platform } from 'ionic-angular';
+import { NavController, ViewController, Events, NavParams, Platform,AlertController , LoadingController} from 'ionic-angular';
 import { Component } from '@angular/core';
 import { FavoritePage } from '../favorite/favorite';
 import { AuthService } from '../../providers/auth-service/auth-service';
 import { LogoutPage } from '../logout/logout';
+import { MyListPage } from '../mylist/mylist';
+
 import { ProgressPage } from '../progress/progress';
 import { PlaylistPage } from '../playlist/playlist';
 import { ContactPage } from '../contact/contact'
@@ -24,7 +26,10 @@ export class OthersoverPage {
     public db: Storage,
     private platform: Platform,
     private navParams: NavParams,
-    private utils: CommonUtils
+    private utils: CommonUtils,
+    private alertCtrl:AlertController,
+    private loadCtrl:LoadingController
+
   ) {
     this.theme = localStorage.getItem("theme")
     this.flag = localStorage.getItem("cc")
@@ -45,7 +50,11 @@ export class OthersoverPage {
           { subtitle: 'Test', component: 'test' },
           { subtitle: 'Practice', component: 'practice' }]
       },
+      { title: 'Refresh Data', component: 'refresh', icon: 'refresh-circle' },
+     
       { title: 'About', component: AboutPage, icon: 'information-circle' },
+      { title: 'Create/Edit My List', component: MyListPage, icon: 'add' },
+
       { title: 'Feedback/Comments', component: "feedback", icon: 'send' },
 
       { title: 'Logout ' + this.auth.user, component: LogoutPage, icon: 'log-out' }
@@ -120,6 +129,21 @@ export class OthersoverPage {
     } else if (page.component == 'feedback') {
       this.sendMail()
       this.viewCtrl.dismiss()
+    } else if (page.icon == 'add') {
+      let params = {
+        site: this.navParams.get("siteName"),
+        items: this.navParams.get("items")
+      }  
+      this.nav.push(page.component,{params:params})
+      this.viewCtrl.dismiss()
+    } else if (page.icon == 'refresh-circle') {
+      this.showRefreshData("Get Latest Language Update","Refreshing Data might remove your study list. Do you want to continue?")
+    
+    } else if (page.icon == 'information-circle') {
+      
+      this.nav.push(page.component)
+      this.viewCtrl.dismiss()
+    
     } else if (page.icon == 'log-out') {
       let params = {
         site: this.navParams.get("siteName"),
@@ -161,8 +185,46 @@ export class OthersoverPage {
 
   sendMail() {
     let data={email:'darreljohn.mendoza@dliflc.edu',subject:"Feedback/Comments",
-              body:'Your comments/feedback is highly appreciated. It will help us in improving the Netprof application. Thank you.',html:false}
+              body:'Your comments/feedback are highly appreciated. It will help us in improving the Netprof application. Thank you.',html:false}
 	
     this.utils.sendEmailFeedback(data)
   }
+
+  showRefreshData(title?: string, message?: string) {
+    let alert = this.alertCtrl.create({
+      title: title  // + user.value
+      ,
+      message: message,
+      buttons: [
+        {
+          text: 'Cancel',
+          handler: () => {
+
+          }
+        }, {
+          text: 'Ok',
+          handler: () => {
+            let loading = this.loadCtrl.create({
+              content: 'Getting the latest items... Please wait...'
+            });
+            // var siteUrl :any
+            loading.present();
+            this.db.get("latestSite").then((site)=>{
+            //  this.auth.load(site).subscribe(()=>{
+             
+              this.auth.load(site).then(()=>{
+               loading.dismiss()
+               this.viewCtrl.dismiss()
+              })
+              // .catch(()=>{
+              //   loading.dismiss()
+              //   this.viewCtrl.dismiss()
+              // })
+            })
+         }
+        }]
+    });
+    alert.present();
+  }
+
 }

@@ -1,0 +1,18 @@
+<!--
+  Generated template for the Popover page.
+
+  See http://ionicframework.com/docs/v2/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+
+<ion-content>
+  <ion-list radio-group>
+    <ion-item *ngFor="let p of playOptions; let i=index" >
+       <ion-label><ion-icon name={{p.icon1}}></ion-icon>
+        <ion-icon name={{p.icon2}}></ion-icon>
+       {{p.title}}</ion-label>
+      <ion-radio (click)="selectPlay(p)" value={{p.value}} checked={{p.checked}}></ion-radio>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

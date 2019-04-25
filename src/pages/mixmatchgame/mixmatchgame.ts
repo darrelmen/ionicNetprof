@@ -4,7 +4,7 @@
 // http://www.html5rocks.com/en/tutorials/dnd/basics/
 
 import { Component } from '@angular/core';
-import { NavParams, NavController, Events, Platform } from 'ionic-angular';
+import { NavParams, NavController,  Platform } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import { CommonUtils } from '../../utils/common-utils';
 
@@ -21,7 +21,7 @@ export class MixMatchGamePage {
     score: number = 0;
     siteName: string
     btnSize: string
-    quizSection: string = ''
+    quizSection: string = 'All items'
 
     constructor(public db: Storage, public utils: CommonUtils, private nav: NavParams,
         private navCtrl: NavController, public platform: Platform) {

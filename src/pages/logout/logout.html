@@ -1,30 +1,28 @@
-<ion-header padding  class="headerLogo">
-  <ion-row style="background-color:#001a33;">
-    <ion-col width-10>
-      <ion-avatar item-left>
+<ion-header no-padding style="background-color:#001a33;" class="headerLogo">
+  <ion-row style="padding-top: 20px;">
+    <ion-col col-10 no-padding>
+      <h3 style="padding-top: 15px;padding-left: 10px;padding-right: 0px;font-size: 2.7em;color:whitesmoke;" >
         <img src="assets/img/Icon-40.png">
-      </ion-avatar>
+        NetProF </h3>
     </ion-col>
-    <ion-col width-80>
-      <ion-label text-center color="light">Simplified Pronunciation Feedback</ion-label>
-      <ion-title text-center color="secondary" >{{auth.SITE_NAME}}</ion-title>
-    </ion-col>
-    <ion-col width-10>
-      <ion-avatar item-right>
+
+    <ion-col col-2>
+      <ion-avatar no-padding item-right>
         <img src="assets/img/dliIcon.png">
       </ion-avatar>
     </ion-col>
   </ion-row>
-  <ion-navbar white>
-    
-</ion-navbar>
+<ion-row style="border-top: 1px solid black;">
+<ion-buttons style="background-color:#001a33;" left>
+<button style="background-color:#001a33;" ion-button (click)="close()">
+  <ion-icon name="arrow-back">&nbsp;Back</ion-icon>
+</button>
+</ion-buttons>
+</ion-row>
 </ion-header>
-<ion-content  padding class="tools">
-  <div >
-    <div padding>
-      <h1 text-center>Thanks for visiting NetProF-lite, {{ auth.user }}! </h1>
-      <button ion-button color={{theme}}  block (click)="logout()">Logout</button>
-    </div>  
+<ion-content padding>
+  <div padding>
+    <h1 text-center>Thanks for visiting NetProF-lite, {{ auth.user }}! </h1>
+    <button ion-button color={{theme}} block (click)="logout()">Logout</button>
   </div>
 </ion-content>
-

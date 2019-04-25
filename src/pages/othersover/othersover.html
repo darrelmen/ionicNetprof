@@ -6,10 +6,10 @@
 -->
 
 <ion-content>
-  <ion-list>
+  <ion-list >
     <ion-item *ngFor="let p of pages; let i=index" text-wrap (click)="toggleLevel1('idx'+i)"  
       (click)="openPage(p)" >
-      <ion-icon name={{p.icon}}></ion-icon> {{p.title}}
+      <ion-icon name={{p.icon}}></ion-icon>  {{p.title}}
       <ion-list *ngIf="isLevel1Shown('idx'+i) ">
         <ion-item *ngFor="let sub of p.sub" text-wrap (click)="openPage(sub)" [ngClass]="{active: isLevel1Shown('idx'+i)}" >
           {{sub.subtitle }}

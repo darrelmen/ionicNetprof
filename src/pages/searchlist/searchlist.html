@@ -17,7 +17,8 @@
   <ion-navbar no-border-bottom no-padding color={{theme}} hideBackButton="true">
 
     <ion-row *ngIf="opts!='search'">
-      <img style="padding-left: 7px;" src="assets/img/cc/{{flag}}.png" alt={{siteName}} width=48 height=42 tappable (click)="getLanguages()">
+      <img style="padding-left: 7px;" src="assets/img/cc/{{flag}}.png" alt={{siteName}} width=48 height=42 tappable
+        (click)="getLanguages()">
       <ion-title text-center (click)="showSearch()">{{siteName}}</ion-title>
       <ion-buttons style="padding-top: 8px" end>
         <button no-padding icon-right dark icon-only ion-button clear (click)="showOthersPopover($event)">
@@ -30,40 +31,45 @@
         <button no-padding left ion-button clear icon-only (click)="getLanguages()">
           <img style="padding-left: 1px;" src="assets/img/cc/{{flag}}.png" alt={{siteName}} width=42 height=42>
         </button>
-        <button #btnMenu style="padding-left: 1px; padding-right:0px" icon-only no-padding left ion-button menuToggle (click)="filterItems()">
+        <button #btnMenu style="padding-left: 1px; padding-right:0px" icon-only no-padding left ion-button menuToggle
+          (click)="filterItems()">
           <ion-icon name="menu"></ion-icon>
         </button>
       </ion-col>
       <ion-col no-padding col-6>
-         <ion-searchbar style="padding-top: 8px;padding-left: 0px;" color="light" [(ngModel)]="searchTerm" [formControl]="searchControl"
-            (ionInput)="onSearchInput()" (ionClear)="onCancel()" (ionCancel)="onCancel()" [showCancelButton]="shouldShowCancel"
-            placeholder="Search Item">
-          </ion-searchbar> 
-          <ion-title *ngIf="!isViewAll">{{ filterTitles }}</ion-title> 
+        <ion-searchbar style="padding-top: 10px;padding-left: 0px;padding-right: 0px;" color="light" [(ngModel)]="searchTerm"
+          [formControl]="searchControl" (ionInput)="onSearchInput()" (ionClear)="onCancel()" (ionCancel)="onCancel()"
+          [showCancelButton]="shouldShowCancel" placeholder="Search Item">
+        </ion-searchbar>
+        <button style="padding-left: 30px; padding-top: 2px;padding-bottom: 2px; color:white;" small clear ion-button
+          *ngIf="!isViewAll">{{ filterTitles }}</button>
       </ion-col>
-      <ion-col col-4 style="padding-right: 0px;">
-        <ion-buttons end style="padding-top: 8px;padding-left: 0px;">
-          <button style="padding-left: 0px;" ion-button icon-only clear (click)="getSearchSpeech()" *ngIf="!isSpeak">
+      <ion-col col-4 no-padding>
+        <ion-buttons end style="padding-top: 8px;padding-left: 0px;padding-right: 8px;">
+          <button style="padding-left: 0px;padding-right: 8px;" ion-button icon-only clear (click)="getSearchSpeech()"
+            *ngIf="!isSpeak">
             <ion-icon name="mic"></ion-icon>
           </button>
-          <button style="padding-left: 0px;" ion-button icon-only color="danger" clear *ngIf="platform.is('ios')  && isSpeak" (click)="stopSpeech()">
+          <button style="padding-left: 0px;padding-right: 8px;" ion-button icon-only color="danger" clear *ngIf="platform.is('ios')  && isSpeak"
+            (click)="stopSpeech()">
             <ion-icon name="radio-button-on"></ion-icon>
           </button>
-          <button ion-button icon-only large clear (click)="showSortByPopover($event,sortOrder)">
+          <button style="padding-left: 0px;padding-right: 8px;" ion-button icon-only large clear (click)="showSortByPopover($event,sortOrder)">
             <ion-icon name="arrow-round-up" *ngIf="sortOrder=='A'"></ion-icon>
             <ion-icon name="arrow-round-down" *ngIf="sortOrder=='D'"></ion-icon>
           </button>
-          <button style="padding-left: 2px;" dark icon-only large ion-button clear (click)="showOthersPopover($event)">
+          <button style="padding-left: 0px;padding-right: 4px;" dark icon-only large ion-button clear (click)="showOthersPopover($event)">
             <ion-icon name="cog"></ion-icon>
           </button>
         </ion-buttons>
       </ion-col>
     </ion-row>
- </ion-navbar>
+    
+  </ion-navbar>
 
 
   <!--  these features will be enabled in the future.  -->
-    
+<ion-row>
   <ion-navbar no-padding color="light" hideBackButton="true">
     <ion-segment color="dark" top [(ngModel)]="opts" (ionChange)="segmentChanged($event)">
       <ion-segment-button value="search">
@@ -73,9 +79,9 @@
       <ion-segment-button value="quizdrop">
         Syntax
       </ion-segment-button>
-    <!--  <ion-segment-button value="quiztrans">
+      <ion-segment-button value="quiztrans" *ngIf="platform.is('ipad') || platform.is('core')">
         Scribe
-      </ion-segment-button>  -->
+      </ion-segment-button>
       <ion-segment-button value="quizfill">
         Fill-In
       </ion-segment-button>
@@ -84,9 +90,9 @@
       </ion-segment-button>
     </ion-segment>
   </ion-navbar>
- 
-
-  <div style="padding-left: 10px;background-color:#f4f4f4;font-size:14px" *ngIf="opts=='search'">
+</ion-row>
+<ion-row>
+  <div style="padding-left: 10px;background-color:#f4f4f4;font-size:18px" *ngIf="opts=='search'">
     Showing
     <span class="badge">{{indices?.start + 1}}</span>
     -
@@ -99,13 +105,12 @@
     <span class="badge" tappable wrap (click)="clearPlayList()" style="color:red;" *ngIf="isPlayList">
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Clear PlayList</span>
   </div>
-
+</ion-row>
 </ion-header>
 
 <div padding class="animate-in-primary" id="flashMsg" text-wrap *ngIf="opts=='flash'"></div>
 
-<ion-content no-padding>
-  <audio [src]="" #audio></audio>
+<ion-content style="padding-left:0px;padding-right:0px; padding-top:25px;">
   <div *ngIf="searching && opts=='search'" class="spinner-container">
     <ion-spinner></ion-spinner>
   </div>
@@ -114,7 +119,8 @@
     <!--  <div><page-autoplay></page-autoplay></div>  -->
     <ion-card color="dark">
       <ion-card-header>
-        <h3>&nbsp;{{ currentTrack.lesson }} {{currentTrack.lessonId }} &nbsp;{{ currentTrack.sublesson }} {{currentTrack.sublessonId
+        <h3>&nbsp;{{ currentTrack.lesson }} {{currentTrack.lessonId }} &nbsp;{{ currentTrack.sublesson }}
+          {{currentTrack.sublessonId
           }}&nbsp; ID:{{currentTrack.id }}</h3>
       </ion-card-header>
       <ion-card-content>
@@ -131,17 +137,18 @@
 
   </div>
 
- <!-- <ion-list [virtualScroll]="items">
+  <!-- <ion-list [virtualScroll]="items">
     <ion-card #ionCard no-padding *virtualItem="let item ; let idx = index;">  -->
-    
 
-<virtual-list [source$]="items$" no-padding *ngIf="opts=='search'" (update)="scrollItems = $event" (change)="indices = $event"
-    [childHeight]=180> 
-    <ion-card #ionCard no-padding *ngFor="let item of scrollItems ; let idx = index; trackBy: trackByFunction"> 
-      <h3>
-        <font color="darkred">&nbsp;{{ item.lesson }} {{item.lessonId }} &nbsp;{{ item.sublesson }} {{item.sublessonId }}&nbsp; ID:{{item.id }}
+
+  <virtual-list [source$]="items$" no-padding *ngIf="opts=='search'" (update)="scrollItems = $event" (change)="indices = $event"
+    [childHeight]=180>
+    <ion-card #ionCard no-padding *ngFor="let item of scrollItems ; let idx = index; trackBy: trackByFunction">
+     <!-- <h3>
+        <font color="darkred">&nbsp;{{ item.lesson }} {{item.lessonId }} &nbsp;{{ item.sublesson }} {{item.sublessonId
+          }}&nbsp; ID:{{item.id }}
         </font>
-      </h3>
+      </h3>-->
       <h2 style="font-family:arial;" padding>
         <ion-checkbox (click)="selectList($event,item,indices?.start, indices?.end)" [checked]="item.isAddPlaylist"></ion-checkbox>
 
@@ -164,53 +171,99 @@
         <ion-item-sliding>
           <ion-item>
             <ion-row>
-
-              <ion-col col-2>
-                <button ion-button block color={{theme}} (click)="changeSpeed(item,idx+indices?.start,$event)" *ngIf="!item.selectedSlow">
-                  <ion-icon name="turtle-press"></ion-icon>
+              <ion-col style="padding-right:0px" col-3>
+                <button ion-button icon-only block  color={{theme}} (click)="playSelectedValue(item,idx+indices?.start,$event)">
+                  <ion-icon name="play"></ion-icon>  
+               
+                 <button ion-button icon-only block  color={{theme}} (click)="showPlayOptionsPopover(item,idx+indices?.start,$event)">
+                    <ion-icon name="arrow-down"></ion-icon>
+                  </button>
                 </button>
-                <button ion-button block color="light" (click)="changeSpeed(item,idx+indices?.start,$event)" *ngIf="item.selectedSlow">
-                  <ion-icon name="turtle"></ion-icon>
-                  <!-- for outline customizable
-                        <ion-icon  name="turtle-press" ></ion-icon>-->
+              
+              </ion-col>
+              <!--button with dropdown
+                <ion-col col-2>
+                    <button ion-button block color="secondary" tooltip="Context selected."  positionV="bottom" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="!item.selectedCtr">
+                      <ion-icon name="quote"></ion-icon>
+                    </button>
+                    <button ion-button block outline color="secondary" tooltip="Vocabulary selected."  positionV="bottom" (click)="contextItem(item,idx+indices?.start,$event)"
+                      *ngIf="item.selectedCtr">
+                      <ion-icon name="quote"></ion-icon>
+                    </button>
+                  </ion-col>
+              <ion-col style="padding-right:0px" col-2>
+                <button ion-button icon-only  full color="secondary" (click)="playSelectedValue(item,idx+indices?.start,$event)">
+                  <ion-icon name="play"></ion-icon>  
                 </button>
               </ion-col>
-              <ion-col col-2>
-                <button ion-button block color="secondary" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="!item.selectedCtr">
-                  <ion-icon name="quote"></ion-icon>
+                <ion-col style="padding-left:0px" col-2>
+                <button ion-button icon-only block color="secondary" (click)="showPlayOptionsPopover(item,idx+indices?.start,$event)">
+                    <ion-icon name="arrow-down"></ion-icon>
+                  </button>
+              </ion-col> 
+              <ion-col style="padding-left:1px" col-2>
+                <button no-padding ion-button icon-only round ion-long-press color=danger [interval]="400"
+                  (onPressStart)="record(item,'vocab')" (onPressEnd)="endRecord(item,'vocab')">
+                      <ion-icon name="mic"></ion-icon>
+                    </button>
+                </ion-col>
+                <div>|</div>
+
+                <ion-col style="padding-right:0px" col-2>
+                    <button ion-button icon-only  full color={{theme}} (click)="playSelectedValue(item,idx+indices?.start,$event)">
+                      <ion-icon name="play"></ion-icon>  
+                    </button>
+                  </ion-col>
+                    <ion-col style="padding-left:0px" col-2>
+                    <button ion-button icon-only block color={{theme}} (click)="showPlayOptionsPopover(item,idx+indices?.start,$event)">
+                        <ion-icon name="arrow-down"></ion-icon>
+                      </button>
+                  </ion-col> -->
+              <!-- More buttons option--> 
+
+                <ion-col col-2>
+                    <button ion-button block color="secondary" tooltip="Vocabulary selected."  positionV="bottom" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="!item.selectedCtr">
+                      <ion-icon name="quote"></ion-icon>
+                    </button>
+                    <button ion-button block outline color="secondary" tooltip="Context selected."  positionV="bottom" (click)="contextItem(item,idx+indices?.start,$event)"
+                      *ngIf="item.selectedCtr">
+                      <ion-icon name="quote"></ion-icon>
+                    </button>
+                  </ion-col>
+
+           <!--  <ion-col col-2>
+                <button ion-button block color={{theme}} tooltip="Slow playback"  positionV="bottom" (click)="changeSpeed(item,idx+indices?.start,$event)" *ngIf="!item.selectedSlow">
+                  <ion-icon name="turtle-press"></ion-icon>
                 </button>
-                <button ion-button block color="light" (click)="contextItem(item,idx+indices?.start,$event)" *ngIf="item.selectedCtr">
-                  <ion-icon name="quote"></ion-icon>
+                <button ion-button outline block color={{theme}} tooltip="Regular playback"  positionV="bottom"(click)="changeSpeed(item,idx+indices?.start,$event)"
+                  *ngIf="item.selectedSlow">
+                  <ion-icon name="turtle"></ion-icon>
                 </button>
               </ion-col>
 
               <ion-col col-2>
                 <button ion-button block outline color={{theme}} (click)="man(item,idx+indices?.start,$event)">
-                  <ion-icon name="male"></ion-icon>
+                  <ion-icon name='male'></ion-icon>
                 </button>
               </ion-col>
               <ion-col col-2>
                 <button ion-button block outline (click)="woman(item,idx+indices?.start,$event)">
-                  <ion-icon name="female"></ion-icon>
+                  <ion-icon name='female'></ion-icon>
                 </button>
               </ion-col>
-              <ion-col col-2>
-                <button ion-button block color="danger" (click)="goRecord(item)">
-                  <ion-icon name="mic"></ion-icon>
-                </button>
-              </ion-col>
+--> 
               <ion-col col-2 *ngIf="item.s>0 && isViewAll == false">
                 <button *ngIf="item.h[item.h.length-1]==='Y'" ion-button outline block color="secondary" (click)="playRecord(item,idx + indices?.start)">
                   {{(item.scores[item.scores.length-1].valueOf() * 100).toFixed(0)}}&nbsp;
                   <ion-icon name="checkmark-circle"></ion-icon>
                 </button>
-                <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()>0" ion-button outline block color="danger"
-                  (click)="playRecord(item,idx + indices?.start)">
+                <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()>0"
+                  ion-button outline block color="danger" (click)="playRecord(item,idx + indices?.start)">
                   {{(item.scores[item.scores.length-1].valueOf() * 100).toFixed(0)}}&nbsp;
                   <ion-icon name="close-circle"></ion-icon>
                 </button>
-                <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()==-1" ion-button outline block
-                  color="danger" (click)="playRecord(item,idx + indices?.start)">
+                <button *ngIf="item.h[item.h.length-1]==='N' && item.scores[item.scores.length-1].valueOf()==-1"
+                  ion-button outline block color="danger" (click)="playRecord(item,idx + indices?.start)">
                   0&nbsp;
                   <ion-icon name="close-circle"></ion-icon>
                 </button>
@@ -239,6 +292,12 @@
                 </button>
 
               </ion-col>
+              <ion-col col-2>
+                <button ion-button block color="danger" (click)="goRecord(item)">
+                   REC&nbsp;
+                  <ion-icon name="arrow-forward"></ion-icon>
+                </button>
+              </ion-col>
             </ion-row>
             <ion-row no-padding style="border-top: 1px solid  gray;" *ngIf="item.s>0 && item.scores.length>0">
               <ion-col col-2 no-padding *ngFor="let score of item.scores; let i=index">
@@ -261,11 +320,13 @@
                   </ion-col> -->
           </ion-item>
           <ion-item-options side="right">
-            <button ion-button small color={{theme}} (click)="selectList($event,item,indices?.start, indices?.end)" *ngIf="!item.isAddPlaylist">
+            <button ion-button small color={{theme}} (click)="selectList($event,item,indices?.start, indices?.end)"
+              *ngIf="!item.isAddPlaylist">
               <ion-icon name="add-circle"></ion-icon>
               PlayList
             </button>
-            <button ion-button small color={{theme}} (click)="selectList($event,item,indices?.start, indices?.end)" *ngIf="item.isAddPlaylist">
+            <button ion-button small color={{theme}} (click)="selectList($event,item,indices?.start, indices?.end)"
+              *ngIf="item.isAddPlaylist">
               <ion-icon name="close-circle"></ion-icon>
               PlayList
             </button>
@@ -280,8 +341,8 @@
 
     </ion-card>
 
-</virtual-list>
-   <div *ngIf="opts=='quizdrop'">
+  </virtual-list>
+  <div *ngIf="opts=='quizdrop'">
     <page-drop></page-drop>
   </div>
 

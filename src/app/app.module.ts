@@ -4,6 +4,7 @@ import { FormsModule  } from '@angular/forms';
 import { CommonModule  } from '@angular/common';
 import { HttpClientModule,HttpClient,HttpBackend, HttpXhrBackend } from '@angular/common/http';
 //import { NativeHttpModule, NativeHttpBackend, NativeHttpFallback } from 'ionic-native-http-connection-backend';
+//import { RouterModule } from '@angular/router';
 
 import { BrowserModule } from '@angular/platform-browser';
 import { MyApp } from './app.component';
@@ -36,9 +37,10 @@ import { RecordPage } from '../pages/record/record';
 import { OthersoverPage } from '../pages/othersover/othersover';
 
 import {SortoverPage } from '../pages/sortover/sortover';
+import {PlayOptionsOverPage} from '../pages/playoptionsover/playoptionsover'
 
 import { File } from '@ionic-native/file';
-import { FileTransfer,  FileTransferObject } from '@ionic-native/file-transfer';
+import { FileTransfer } from '@ionic-native/file-transfer';
 import { TextToSpeech } from '@ionic-native/text-to-speech';
 import { Media } from '@ionic-native/media';
 import { Device } from '@ionic-native/device'
@@ -63,10 +65,14 @@ import { PlaylistPage } from '../pages/playlist/playlist';
 import { ProgressBarComponent } from '../components/progress-bar/progress-bar';
 import {ContactPage} from '../pages/contact/contact'
 import {AboutPage} from '../pages/about/about'
+import { MyListPage } from '../pages/mylist/mylist';
 
 import { LongPressModule } from 'ionic-long-press'; 
 import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { SpeechRecognition } from '@ionic-native/speech-recognition';
+import { TooltipsModule } from 'ionic-tooltips';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { CookieService } from 'ngx-cookie-service'
 // import { FcmProvider } from '../providers/fcm/fcm';
 
 // import { AngularFireModule } from 'angularfire2';
@@ -109,14 +115,16 @@ import { SpeechRecognition } from '@ionic-native/speech-recognition';
     SearchListPage,
     LogoutPage,LanguagePage,
     RecordPage,MenuItemsPage,
-    OthersoverPage,SortoverPage,
+    OthersoverPage,SortoverPage,PlayOptionsOverPage,MyListPage,
     OrderByPipe,ContactPage,AboutPage,ProgressPage,
     FavoritePage,QuizFillPage,QuizTransPage,AutoPlayPage,DropPage,DropQuizPage,MixMatchPage,MixMatchGamePage,
     FlashCardComponent,PlaylistPage,ProgressBarComponent
   ],
-  imports: [FormsModule,CommonModule,BrowserModule, LongPressModule, //NativeHttpModule,HttpModule,
-    IonicModule.forRoot(MyApp,{tabsPlacement: 'top'}),VirtualListModule,HttpClientModule,
-    IonicStorageModule.forRoot() //,NativeHttpModule
+  imports: [FormsModule,CommonModule,BrowserModule, LongPressModule,HttpClientModule, //NativeHttpModule,HttpModule,
+    IonicModule.forRoot(MyApp,{tabsPlacement: 'top'}),VirtualListModule,
+    IonicStorageModule.forRoot(),
+    TooltipsModule.forRoot(),BrowserAnimationsModule //,NativeHttpModule
+    //RouterModule.forRoot([]),
     // AngularFireModule.initializeApp(firebaseConfig),
     // AngularFireDatabaseModule,
     // AngularFireAuthModule
@@ -126,13 +134,15 @@ import { SpeechRecognition } from '@ionic-native/speech-recognition';
     MyApp,LoginPage,
     LogoutPage,LanguagePage,
     MenuItemsPage,QuizFillPage,QuizTransPage,
-    SearchListPage,RecordPage,
-    OthersoverPage,SortoverPage,ContactPage,AboutPage,ProgressPage,
+    SearchListPage,RecordPage,MyListPage,
+    OthersoverPage,SortoverPage,PlayOptionsOverPage,ContactPage,AboutPage,ProgressPage,
     FavoritePage,PlaylistPage,AutoPlayPage,DropPage,DropQuizPage,MixMatchPage,MixMatchGamePage
   ],
-  providers: [StatusBar,Media,TextToSpeech,File, Device,HTTP, AndroidPermissions,SpeechRecognition,FileTransfer,
-     EmailComposer,AuthService,DBProvider,CommonUtils,RecordUtils,
+  providers: [StatusBar,Media,File, Device,HTTP, AndroidPermissions,SpeechRecognition,FileTransfer,
+     EmailComposer,AuthService,DBProvider,CommonUtils,RecordUtils,CookieService,
     SplashScreen,
+    TextToSpeech,
+   // {provide: HTTP_INTERCEPTORS,useClass: AuthInterceptor,multi: true},
  //   {provide: HttpBackend, useClass: NativeHttpFallback, deps: [ NativeHttpBackend, HttpXhrBackend]},
   //   {
   //     provide: {

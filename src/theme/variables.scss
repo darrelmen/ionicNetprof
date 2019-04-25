@@ -39,15 +39,15 @@ $colors: (
   danger:     #f53d3d,
   light:      #f4f4f4,
   dark:       #222,
-  blue-theme:#0fb3ff ,
+  blue-theme:#135286  ,
   green-theme:#388896
 );
 
 
 
-$popover-md-width: 70%;
-$popover-ios-width: 70%;
-$popover-wp-width: 70%;
+$popover-md-width: 60%;
+$popover-ios-width: 60%;
+$popover-wp-width: 60%;
 
 // App iOS Variables
 // --------------------------------------------------
@@ -113,7 +113,15 @@ $popover-wp-width: 70%;
 
 }
 
+.ion-ios-rabbit,
+.ion-ios-rabbit-outline,
+.ion-md-rabbit-outline,
+.ion-md-rabbit{
 
+  // ../../ is the root directory from www  browser
+  content: url(../assets/img/rabbit32.png);
+
+}
 .ion-ios-male,
 .ion-ios-male-outline,
 .ion-md-male-outline,

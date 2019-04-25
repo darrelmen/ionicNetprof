@@ -68,6 +68,7 @@ export class LanguagePage {
         if (val == null) {
           this.getOnlineContents(site)
         } else {
+          this.utils.presentToast("Selected language is  ... " + site.language.toUpperCase(),1000)
           this.platform.ready().then(() => {
             this.db.set("rtl", site.rtl)
             this.db.set("latestSite", site)
@@ -95,9 +96,9 @@ export class LanguagePage {
     // this.url = this.logform.value.url
     //   let siteName=this.url.split("https://np.ll.mit.edu/",2)
     this.auth.load(site).then(
-     // this.auth.load(site).subscribe(
+    // this.auth.load(site).subscribe(
       //for deployment 
-      //this.auth.load(this.logform.value.site).then(
+     //this.auth.load(this.logform.value.site).then(
 
       (items) => {
         this.platform.ready().then(() => {

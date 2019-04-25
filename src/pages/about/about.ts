@@ -15,10 +15,19 @@ import {  NavController, NavParams } from 'ionic-angular';
 export class AboutPage {
 
   constructor(public navCtrl: NavController, public navParams: NavParams) {
+    this.theme = localStorage.getItem("theme")
   }
-
+theme:string
+ispress=false
   ionViewDidLoad() {
     console.log('ionViewDidLoad AboutPage');
   }
 
+show(){
+  if(this.ispress) {
+    this.ispress=false
+  }else {
+  this.ispress=true
+  }
+}
 }

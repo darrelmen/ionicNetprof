@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { NavController, MenuController, NavParams } from 'ionic-angular';
 import { AuthService } from '../../providers/auth-service/auth-service';
 import { LoginPage } from '../login/login';
+import { SearchListPage } from '../searchlist/searchlist';
+
 import { Storage } from '@ionic/storage';
 @Component({
   templateUrl: 'logout.html',
@@ -24,5 +26,15 @@ export class LogoutPage {
     this.menu.enable(false);
     this.nav.setRoot(LoginPage);
     // window.location.reload();
+  }
+  close(){
+    try {
+      this.nav.insert(0,SearchListPage  );
+      this.nav.popToRoot();
+  } catch (error) {
+    this.nav.popToRoot();
+  } finally {
+    this.nav.popToRoot();
+  }
   }
 }
