@@ -106,7 +106,7 @@
             </button>
           </ion-col>
           <ion-col col-6 *ngIf="!isAutoPlay && isShowAll">
-            <button ion-button round ion-long-press block color={{recordColorCtx}} [interval]="400"
+            <button ion-button round ion-long-press block color={{recordColorCtx}} [interval]="500"
               (onPressStart)="record(item,'context')" (onPressEnd)="endRecord(item,'context')">
               <ion-icon name={{recordIcon}}>&nbsp;Context</ion-icon>
             </button>

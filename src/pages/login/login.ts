@@ -146,7 +146,7 @@ export class LoginPage implements OnInit {
                .then(result => {
                   console.log(" sites upload ")
                   // for mock
-                  // this.sites=result[0].sites
+                 // this.sites=result[0].sites
                  this.sites = result.sites
                   this.sites = this.sites.sort(function (a, b) {
                     return a.language.localeCompare(b.language)

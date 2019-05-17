@@ -439,6 +439,7 @@ export class RecordPage {
 
           sound.setVolume(1.0)
           sound.onSuccess.subscribe((dur) => {
+            sound.release()
             if (this.isBoth) {
               // this.tts.speak({ text: itemToSpeak, locale: 'en-US', rate: 1.5 })
               //   .then((ret) => { })
@@ -683,53 +684,57 @@ export class RecordPage {
     this.recUtils.textToSpeech(item)
   }
 
+ 
   record(item, recType) {
+    // settimeout is needed because of issue with longpress do not remove
+    if (this.x) clearTimeout(this.x);
+          this.x = setTimeout(() => {
+      this.recordIcon = "radio-button-on"
+      let filename = ''
+      if (recType == 'context') {
+        filename = item.ctid + '_rec.wav'
+        this.recordColorCtx = "light"
+      } else {
+        this.recordColor = "light"
+        filename = item.id + '_rec.wav'
+      }
+      let bestAudioDir = this.recUtils.checkPlatform()
+      let dir = bestAudioDir + this.siteName + "/"
 
-    this.recordIcon = "radio-button-on"
-    let filename = ''
-    if (recType == 'context') {
-      filename = item.ctid + '_rec.wav'
-      this.recordColorCtx = "light"
-    } else {
-      this.recordColor = "light"
-      filename = item.id + '_rec.wav'
-    }
-    let bestAudioDir = this.recUtils.checkPlatform()
-    let dir = bestAudioDir + this.siteName + "/"
-    
-    this.file.checkDir(bestAudioDir, this.siteName).then((isExist) => {
-      this.file.createFile(dir, filename, true).then(() => {
-        if (this.platform.is("ios")) {
-          this.recObject = this.newFile.create((bestAudioDir + this.siteName + "/").replace(/^file:\/\//, '') + filename);
-          console.log(" file name " + (bestAudioDir + this.siteName + "/").replace(/^file:\/\//, '') + filename)
-        } else {
-          this.recObject = this.newFile.create(normalizeURL(bestAudioDir + this.siteName + "/" + filename));
-          console.log(" file name " + normalizeURL(bestAudioDir + this.siteName + "/" + filename))
+      this.file.checkDir(bestAudioDir, this.siteName).then((isExist) => {
+        this.file.createFile(dir, filename, true).then(() => {
+          if (this.platform.is("ios")) {
+            this.recObject = this.newFile.create((bestAudioDir + this.siteName + "/").replace(/^file:\/\//, '') + filename);
+            console.log(" file name " + (bestAudioDir + this.siteName + "/").replace(/^file:\/\//, '') + filename)
+          } else {
+            this.recObject.release()
+            this.recObject = this.newFile.create(normalizeURL(bestAudioDir + this.siteName + "/" + filename));
+            console.log(" file name " + normalizeURL(bestAudioDir + this.siteName + "/" + filename))
 
-        }
-        item.isScored = true
+          }
+          item.isScored = true
 
-        if (recType == 'context') {
-          item.isRecordCtx = true
-        } else {
-          item.isRecord = true
-        }
-        this.isRecord = true
-        this.didRecording = true
-        this.slider.lockSwipes(true);
-        this.platform.ready().then(() => {
-          this.recObject.startRecord();
-          console.log(" start record succ has per " + dir + filename)
+          if (recType == 'context') {
+            item.isRecordCtx = true
+          } else {
+            item.isRecord = true
+          }
+          this.isRecord = true
+          this.didRecording = true
+          this.slider.lockSwipes(true);
+          this.platform.ready().then(() => {
+            this.recObject.startRecord();
+            console.log(" start record succ has per " + dir + filename)
 
+          })
         })
-      })
-    }).catch((err) => {
-      this.platform.init()
-      this.file.createDir(bestAudioDir, this.siteName, true).then((val) => {
-        console.log(" file name err val " + val.toURL())
-        this.file.createFile(dir, filename, true).then((fe) => {
-          console.log(" file name err fe " + fe.toURL())
-        
+      }).catch((err) => {
+        this.platform.init()
+        this.file.createDir(bestAudioDir, this.siteName, true).then((val) => {
+          console.log(" file name err val " + val.toURL())
+          this.file.createFile(dir, filename, true).then((fe) => {
+            console.log(" file name err fe " + fe.toURL())
+
             if (this.platform.is("ios")) {
               this.recObject = this.newFile.create((bestAudioDir + this.siteName + "/").replace(/^file:\/\//, '') + filename);
               console.log(" file name err " + (bestAudioDir + this.siteName + "/").replace(/^file:\/\//, '') + filename)
@@ -751,16 +756,16 @@ export class RecordPage {
               this.recObject.startRecord();
               console.log(" start record err " + dir + filename)
             })
-           // this.isRecord = false
-          // item.isRecord = false
-          // this.recordColor = "danger"
-          // this.recordColorCtx = "danger"
-          // this.recordIcon = "mic"
-     //     this.slider.lockSwipes(false);
-        });
+            // this.isRecord = false
+            // item.isRecord = false
+            // this.recordColor = "danger"
+            // this.recordColorCtx = "danger"
+            // this.recordIcon = "mic"
+            //     this.slider.lockSwipes(false);
+          });
+        })
       })
-    })
-   
+    }, 300)
   }
 
   onPressing(item: Item, recType: string) {
@@ -866,6 +871,9 @@ export class RecordPage {
             } else if (test.valid == "TOO_LONG") {
               this.isSpinner = false
               this.utils.showAlert("", "Recording Too Long", "Please try again. ")
+            } else {
+              this.isSpinner = false
+              this.utils.showAlert("", "Im not sure about the error", "Please try again. ")
             }
             this.slider.lockSwipes(false);
             console.log("Post Record status " + test.valid)

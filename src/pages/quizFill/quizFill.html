@@ -21,7 +21,7 @@
 					</ion-select>
 				</ion-item>
 				<ion-item style="background-color: white;" no-padding>
-					<ion-range min="10" max={{testMax}} pin="true" [(ngModel)]="testItems" color="secondary">
+					<ion-range min="5" max={{testMax}} pin="true" [(ngModel)]="testItems" color="secondary">
 						<ion-label range-left>5</ion-label>
 						<ion-label range-right>{{testMax}}</ion-label>
 					</ion-range>
@@ -35,20 +35,20 @@
 
 	<ion-slide *ngFor="let question of questions; let i = index;">
 		<ion-fab *ngIf="hasAnswered"  top right >
-			<button ion-fab><ion-icon name="arrow-dropright" (click)="moveNext(question)"></ion-icon></button>
+			<button ion-fab (click)="moveNext(question)" ><ion-icon name="arrow-dropright" ></ion-icon></button>
 		</ion-fab>
 
 		<h3 style="font-size: medium;">Question {{i+1}} of {{questions.length}} - ({{quizSection}})</h3>
 
 		<flash-card [isFlipped]="question.flashCardFlipped">
 			<div class="flash-card-front">
-				<span>{{ quizType=='context' ? question.flashCardFront : btnLang=="English" ? question.flashCardBackEng :
+				<span dir={{rtl}} >{{ quizType=='context' ? question.flashCardFront : btnLang=="English" ? question.flashCardBackEng :
 					question.flashCardBack
 					}}
 				</span>
 			</div>
 
-			<span id={{question.item.id}} *ngIf="question.type=='Fill'" class="flash-card-back" [innerHTML]="question.item.ct.toUpperCase() "></span>
+			<span id={{question.item.id}} *ngIf="question.type=='Fill'" class="flash-card-back" [dir]="rtl"  [innerHTML]="question.item.ct.toUpperCase() "></span>
 	
 			<div *ngIf="question.type=='Match'" class="flash-card-back" [innerHTML]=" question.flashCardBack.fontcolor('green') +
 				 '  (' + question.flashCardBackEng + ')' "></div>

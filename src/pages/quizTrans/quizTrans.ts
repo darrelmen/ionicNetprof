@@ -16,8 +16,8 @@ export class QuizTransPage {
 	@ViewChild('slides') slides: any;
 	hasAnswered: boolean = false;
 	score: number = 0;
-	testItems = 5
-	testMax=100
+	testItems:number = 5
+	testMax:number=100
 	slideOptions: any;
 	public questions = []
 	url: string

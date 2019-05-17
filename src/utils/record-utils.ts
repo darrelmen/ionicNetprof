@@ -411,14 +411,18 @@ export class RecordUtils {
   playRecord(item, siteName, recordId?: string) {
     item.isPlay = true
     let bestAudioDir = this.checkPlatform()
+    console.log("playrecord replace i " +item.id )
+    console.log("playrecord replace r " +recordId )
+   
     if (recordId == undefined || recordId == null) {
       recordId = item.id
     }
+    
+    recordId = item.id
     if (item.selectedCtr && item.isRecordCtx) {
       recordId = item.ctid
     }
-    console.log("playrecord replace " +item.isRecordCtx)
-        
+    
     let filename = recordId + "_rec.wav"
     let dir = bestAudioDir + siteName + "/"
     this.platform.ready().then((read) => {

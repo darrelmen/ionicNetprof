@@ -21,8 +21,8 @@ import {DropQuizPage} from '../../pages/dropquiz/dropquiz'
 export class DropPage {
     items = [];
     testItems: number = 5
-    testLevel = 1
-    testMax=100
+    testLevel: number = 1
+    testMax: number =100
     questions: Array<Question> = []
     answer = []
     wordsRightOrder = []

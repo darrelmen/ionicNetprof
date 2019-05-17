@@ -16,12 +16,13 @@ export class QuizFillPage {
 	@ViewChild('slides') slides: any;
 	hasAnswered: boolean = false;
 	score: number = 0;
-	testItems = 5
-	testMax: number
+	testItems: number = 5
+	testMax: number =20
 	slideOptions: any;
 	quizSection: string = ''
 	questions: Array<Question> = []
 	url: string
+	rtl:string
 	items: Array<Item>;
 	
 	constructor(public navCtrl: NavController, public db: Storage, public recUtils: RecordUtils, public utils: CommonUtils) {
@@ -42,7 +43,10 @@ export class QuizFillPage {
 		})
 		this.db.get("quizSection").then((quiz) => this.quizSection = quiz)
 
-
+		this.db.get("rtl").then((rtl) => {
+			if(rtl) this.rtl = "rtl"
+			console.log(this.rtl)
+		})
 		this.theme = localStorage.getItem("theme")
 		if (this.theme == null) this.theme = "primary"
 	}
@@ -100,7 +104,7 @@ export class QuizFillPage {
 		this.recUtils.downPlay(this.url + "/" + question.flashCardAudio)
 		
 		let tDelay=3500
-		if (question.type=='Fill') tDelay=8000
+		if (question.type=='Fill') tDelay=6000
 		this.myInter=setInterval(() => {
 			this.theme = localStorage.getItem("theme")
 			this.hasAnswered = false;
@@ -150,7 +154,7 @@ export class QuizFillPage {
 			q.item = item
 			let answers: Array<Answer> = []
 			if (this.quizType == "context") {
-				let ct = item.ct.toUpperCase().trim().replace("’", "'")
+				let ct:string = item.ct.toUpperCase().trim().replace("’", "'")
 				let searchText = item.fl.toUpperCase().trim().replace("’", "'")
 				let newCt: string = ct.replace(searchText, "_______")
 				q.flashCardFront = newCt

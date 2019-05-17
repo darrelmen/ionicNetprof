@@ -385,12 +385,11 @@ export class AuthService {
         
         // for deployemnt
         this.httpNative.setDataSerializer('json');
-        //this.httpNative.acceptAllCerts(true)
         this.httpNative.setSSLCertMode("nocheck")
-        return this.httpNative.get(this.SITES_URL, {}, { "Content-Type": "application/json" })
+        return this.httpNative.get(siteUrl, {}, { "Content-Type": "application/json" })
             .then((data) => {
                 //return string JSON 
-                //  console.log("Site upload " + data.data);
+           //   console.log("Site upload " + data.data);
 
                 return JSON.parse(data.data)
 
@@ -942,7 +941,7 @@ export class AuthService {
         return ft.upload(encodeURI(recordFile), encodeURI(recordUrl), options, true)
             //return this.httpNative.post(recordUrl, recordFile,{headers: this.contentHeader})
             .then((data) => {
-                console.log("status " + data.response);
+                console.log("status ok ") // + data.response);
                 return JSON.parse(data.response)
             })
             .catch(error => {
